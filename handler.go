@@ -43,8 +43,3 @@ func (h *Handler) match(name string) bool {
 type extractor interface {
 	extract(context.Context, Event) (io.Reader, error)
 }
-
-// loader loads projected data into a destination such as BigQuery.
-type loader interface {
-	load(context.Context, [][]string) error
-}

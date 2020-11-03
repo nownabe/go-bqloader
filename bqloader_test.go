@@ -34,10 +34,11 @@ func TestLoader(t *testing.T) {
 		loader:    tl,
 	}
 
-	loader := New()
-	loader.AddHandler(handler)
-
 	ctx := context.Background()
+
+	loader := New()
+	loader.MustAddHandler(ctx, handler)
+
 	src := bytes.NewBufferString("2020/11/21,foo,123")
 	e := Event{Name: "test/name", Bucket: "bucket", source: src}
 

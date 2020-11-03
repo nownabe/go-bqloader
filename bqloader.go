@@ -1,22 +1,20 @@
 package bqloader
 
 import (
-	"bytes"
 	"context"
-	"encoding/csv"
 	"io"
 	"log"
 	"sync"
 
-	"cloud.google.com/go/bigquery"
 	"cloud.google.com/go/storage"
 	"golang.org/x/text/transform"
 )
 
 // BQLoader loads data from Cloud Storage to BigQuery table.
 type BQLoader interface {
-	AddHandler(*Handler)
+	AddHandler(context.Context, *Handler) error
 	Handle(context.Context, Event) error
+	MustAddHandler(context.Context, *Handler)
 }
 
 // Event is an event from Cloud Storage.
@@ -41,11 +39,27 @@ type bqloader struct {
 	mu       sync.RWMutex
 }
 
-func (l *bqloader) AddHandler(h *Handler) {
+func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
+	if h.loader == nil {
+		loader, err := newDefaultLoader(ctx, h.Project, h.Dataset, h.Table)
+		if err != nil {
+			return err
+		}
+		h.loader = loader
+	}
+
 	l.handlers = append(l.handlers, h)
+
+	return nil
+}
+
+func (l *bqloader) MustAddHandler(ctx context.Context, h *Handler) {
+	if err := l.AddHandler(ctx, h); err != nil {
+		panic(err)
+	}
 }
 
 func (l *bqloader) Handle(ctx context.Context, e Event) error {
@@ -123,45 +137,5 @@ func (l *bqloader) handle(ctx context.Context, e Event, h *Handler) error {
 
 	log.Printf("[%s] DEBUG records = %+v", h.Name, records)
 
-	// If loader is specified, prefer to use Loader.
-	if h.loader != nil {
-		return h.loader.load(ctx, records)
-	}
-
-	// TODO: Make following process to load a Loader.
-
-	// TODO: Make output format more efficient. e.g. gzip.
-	buf := &bytes.Buffer{}
-	if err := csv.NewWriter(buf).WriteAll(records); err != nil {
-		log.Printf("[%s] failed to write csv: %v", h.Name, err)
-		return err
-	}
-
-	bq, err := bigquery.NewClient(ctx, h.Project)
-	if err != nil {
-		return err
-	}
-
-	table := bq.Dataset(h.Dataset).Table(h.Table)
-	rs := bigquery.NewReaderSource(buf)
-	loader := table.LoaderFrom(rs)
-
-	job, err := loader.Run(ctx)
-	if err != nil {
-		log.Printf("[%s] failed to run bigquery load job: %v", h.Name, err)
-		return err
-	}
-
-	status, err := job.Wait(ctx)
-	if err != nil {
-		log.Printf("[%s] failed to wait job: %v", h.Name, err)
-		return err
-	}
-
-	if status.Err() != nil {
-		log.Printf("[%s] failed to load csv: %v", h.Name, status.Errors)
-		return status.Err()
-	}
-
-	return nil
+	return h.loader.load(ctx, records)
 }
