@@ -13,8 +13,8 @@ import (
 	"golang.org/x/text/transform"
 )
 
-// Loader loads data from Cloud Storage to BigQuery table.
-type Loader interface {
+// BQLoader loads data from Cloud Storage to BigQuery table.
+type BQLoader interface {
 	AddHandler(*Handler)
 	Handle(context.Context, Event) error
 }
@@ -23,29 +23,32 @@ type Loader interface {
 type Event struct {
 	Name   string `json:"name"`
 	Bucket string `json:"bucket"`
+
+	// for test
+	source io.Reader
 }
 
 // New build a new Loader.
-func New() Loader {
-	return &loader{
+func New() BQLoader {
+	return &bqloader{
 		handlers: []*Handler{},
 		mu:       sync.RWMutex{},
 	}
 }
 
-type loader struct {
+type bqloader struct {
 	handlers []*Handler
 	mu       sync.RWMutex
 }
 
-func (l *loader) AddHandler(h *Handler) {
+func (l *bqloader) AddHandler(h *Handler) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
 	l.handlers = append(l.handlers, h)
 }
 
-func (l *loader) Handle(ctx context.Context, e Event) error {
+func (l *bqloader) Handle(ctx context.Context, e Event) error {
 	log.Printf("loader started")
 	defer log.Printf("loader finished")
 
@@ -65,31 +68,37 @@ func (l *loader) Handle(ctx context.Context, e Event) error {
 	return nil
 }
 
-func (l *loader) handle(ctx context.Context, e Event, h *Handler) error {
-	sc, err := storage.NewClient(ctx)
-	if err != nil {
-		return err
-	}
-
-	bq, err := bigquery.NewClient(ctx, h.Project)
-	if err != nil {
-		return err
-	}
-
-	obj := sc.Bucket(e.Bucket).Object(e.Name)
-	objr, err := obj.NewReader(ctx)
-	if err != nil {
-		log.Printf("[%s] failed to initialize object reader: %v", h.Name, err)
-		return err
-	}
-	defer objr.Close()
-	log.Printf("[%s] DEBUG objr = %+v", h.Name, objr)
-
+func (l *bqloader) handle(ctx context.Context, e Event, h *Handler) error {
 	var r io.Reader
-	if h.Encoding != nil {
-		r = transform.NewReader(objr, h.Encoding.NewDecoder())
+	if h.extractor != nil {
+		// If extractor is specified, prefer to use it.
+		er, err := h.extractor.extract(ctx, e)
+		if err != nil {
+			return err
+		}
+		r = er
 	} else {
+		// If extractor is not specified, use the default extractor.
+		// TODO: Make following process to get data from cloud storage an extractor.
+		sc, err := storage.NewClient(ctx)
+		if err != nil {
+			return err
+		}
+
+		obj := sc.Bucket(e.Bucket).Object(e.Name)
+		objr, err := obj.NewReader(ctx)
+		if err != nil {
+			log.Printf("[%s] failed to initialize object reader: %v", h.Name, err)
+			return err
+		}
+		defer objr.Close()
+		log.Printf("[%s] DEBUG objr = %+v", h.Name, objr)
+
 		r = objr
+	}
+
+	if h.Encoding != nil {
+		r = transform.NewReader(r, h.Encoding.NewDecoder())
 	}
 
 	source, err := h.Parser(ctx, r)
@@ -114,10 +123,22 @@ func (l *loader) handle(ctx context.Context, e Event, h *Handler) error {
 
 	log.Printf("[%s] DEBUG records = %+v", h.Name, records)
 
+	// If loader is specified, prefer to use Loader.
+	if h.loader != nil {
+		return h.loader.load(ctx, records)
+	}
+
+	// TODO: Make following process to load a Loader.
+
 	// TODO: Make output format more efficient. e.g. gzip.
 	buf := &bytes.Buffer{}
 	if err := csv.NewWriter(buf).WriteAll(records); err != nil {
 		log.Printf("[%s] failed to write csv: %v", h.Name, err)
+		return err
+	}
+
+	bq, err := bigquery.NewClient(ctx, h.Project)
+	if err != nil {
 		return err
 	}
 
