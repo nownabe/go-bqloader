@@ -11,7 +11,7 @@ import (
 )
 
 func TestLoader(t *testing.T) {
-	projector := func(r []string) ([]string, error) {
+	projector := func(_ int, r []string) ([]string, error) {
 		t, err := time.Parse("2006/01/02", r[0])
 		if err != nil {
 			return nil, fmt.Errorf("Failed to parse date: %v", err)

@@ -34,7 +34,7 @@ type Handler struct {
 }
 
 // Projector transforms source records into records for destination.
-type Projector func([]string) ([]string, error)
+type Projector func(int, []string) ([]string, error)
 
 func (h *Handler) match(name string) bool {
 	return h.Pattern != nil && h.Pattern.MatchString(name)
@@ -61,7 +61,7 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 
 	// TODO: Make this loop parallel.
 	for i, r := range source {
-		record, err := h.Projector(r)
+		record, err := h.Projector(i, r)
 		if err != nil {
 			log.Printf("[%s] failed to project row %d: %v", h.Name, i+h.SkipLeadingRows, err)
 			return err
