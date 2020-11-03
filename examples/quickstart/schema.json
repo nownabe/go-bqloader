@@ -1,0 +1,38 @@
+[
+  {
+    "name": "date",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "transaction date"
+  },
+  {
+    "name": "description",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "what this transaction is"
+  },
+  {
+    "name": "withdrawal_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "withdrawal amount (yen)"
+  },
+  {
+    "name": "deposit_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "deposit amount (yen)"
+  },
+  {
+    "name": "balance",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "balance (yen)"
+  },
+  {
+    "name": "memo",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "memo"
+  }
+]
