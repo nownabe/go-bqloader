@@ -5,8 +5,6 @@ import (
 	"io"
 	"log"
 	"sync"
-
-	"golang.org/x/text/transform"
 )
 
 // BQLoader loads data from Cloud Storage to BigQuery table.
@@ -79,7 +77,7 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 		log.Printf("handler = %+v", h)
 		if h.match(e.Name) {
 			log.Printf("handler matches")
-			if err := l.handle(ctx, e, h); err != nil {
+			if err := h.handle(ctx, e); err != nil {
 				log.Printf("error: %v", err)
 				return err
 			}
@@ -87,39 +85,4 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 	}
 
 	return nil
-}
-
-func (l *bqloader) handle(ctx context.Context, e Event, h *Handler) error {
-	r, err := h.extractor.extract(ctx, e)
-	if err != nil {
-		return err
-	}
-
-	if h.Encoding != nil {
-		r = transform.NewReader(r, h.Encoding.NewDecoder())
-	}
-
-	source, err := h.Parser(ctx, r)
-	if err != nil {
-		log.Printf("[%s] failed to parse object: %v", h.Name, err)
-		return err
-	}
-	source = source[h.SkipLeadingRows:]
-
-	records := make([][]string, len(source))
-
-	// TODO: Make this loop parallel.
-	for i, r := range source {
-		record, err := h.Projector(r)
-		if err != nil {
-			log.Printf("[%s] failed to project row %d: %v", h.Name, i+h.SkipLeadingRows, err)
-			return err
-		}
-
-		records[i] = record
-	}
-
-	log.Printf("[%s] DEBUG records = %+v", h.Name, records)
-
-	return h.loader.load(ctx, records)
 }
