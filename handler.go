@@ -1,8 +1,6 @@
 package bqloader
 
 import (
-	"context"
-	"io"
 	"regexp"
 
 	"golang.org/x/text/encoding"
@@ -37,9 +35,4 @@ type Projector func([]string) ([]string, error)
 
 func (h *Handler) match(name string) bool {
 	return h.Pattern != nil && h.Pattern.MatchString(name)
-}
-
-// extractor extracts data from source such as Cloud Storage.
-type extractor interface {
-	extract(context.Context, Event) (io.Reader, error)
 }

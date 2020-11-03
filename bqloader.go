@@ -6,7 +6,6 @@ import (
 	"log"
 	"sync"
 
-	"cloud.google.com/go/storage"
 	"golang.org/x/text/transform"
 )
 
@@ -42,6 +41,14 @@ type bqloader struct {
 func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
+	if h.extractor == nil {
+		ex, err := newDefaultExtractor(ctx, h.Project)
+		if err != nil {
+			return err
+		}
+		h.extractor = ex
+	}
 
 	if h.loader == nil {
 		loader, err := newDefaultLoader(ctx, h.Project, h.Dataset, h.Table)
@@ -83,32 +90,9 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 }
 
 func (l *bqloader) handle(ctx context.Context, e Event, h *Handler) error {
-	var r io.Reader
-	if h.extractor != nil {
-		// If extractor is specified, prefer to use it.
-		er, err := h.extractor.extract(ctx, e)
-		if err != nil {
-			return err
-		}
-		r = er
-	} else {
-		// If extractor is not specified, use the default extractor.
-		// TODO: Make following process to get data from cloud storage an extractor.
-		sc, err := storage.NewClient(ctx)
-		if err != nil {
-			return err
-		}
-
-		obj := sc.Bucket(e.Bucket).Object(e.Name)
-		objr, err := obj.NewReader(ctx)
-		if err != nil {
-			log.Printf("[%s] failed to initialize object reader: %v", h.Name, err)
-			return err
-		}
-		defer objr.Close()
-		log.Printf("[%s] DEBUG objr = %+v", h.Name, objr)
-
-		r = objr
+	r, err := h.extractor.extract(ctx, e)
+	if err != nil {
+		return err
 	}
 
 	if h.Encoding != nil {
