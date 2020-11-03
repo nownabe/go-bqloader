@@ -40,6 +40,7 @@ func (l *defaultLoader) load(ctx context.Context, records [][]string) error {
 	}
 	rs := bigquery.NewReaderSource(buf)
 	loader := l.table.LoaderFrom(rs)
+	loader.LoadConfig.CreateDisposition = bigquery.CreateNever
 
 	job, err := loader.Run(ctx)
 	if err != nil {
