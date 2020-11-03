@@ -1,6 +1,6 @@
-module github.com/nownabe/go-bqloader
+module go.nownabe.dev/bqloader
 
-go 1.15
+go 1.13
 
 require (
 	cloud.google.com/go/bigquery v1.12.0
