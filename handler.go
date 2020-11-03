@@ -1,6 +1,8 @@
 package bqloader
 
 import (
+	"context"
+	"io"
 	"regexp"
 
 	"golang.org/x/text/encoding"
@@ -25,6 +27,9 @@ type Handler struct {
 
 	// Table specifies BigQuery table ID as destination.
 	Table string
+
+	extractor extractor
+	loader    loader
 }
 
 // Projector transforms source records into records for destination.
@@ -32,4 +37,9 @@ type Projector func([]string) ([]string, error)
 
 func (h *Handler) match(name string) bool {
 	return h.Pattern != nil && h.Pattern.MatchString(name)
+}
+
+// extractor extracts data from source such as Cloud Storage.
+type extractor interface {
+	extract(context.Context, Event) (io.Reader, error)
 }
