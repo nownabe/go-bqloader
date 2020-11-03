@@ -75,8 +75,8 @@ func newTestExtractor() extractor {
 	return &testExtractor{}
 }
 
-func (e *testExtractor) extract(_ context.Context, ev Event) (io.Reader, error) {
-	return ev.source, nil
+func (e *testExtractor) extract(_ context.Context, ev Event) (io.Reader, func(), error) {
+	return ev.source, func() {}, nil
 }
 
 type testLoader struct {

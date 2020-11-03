@@ -41,10 +41,11 @@ func (h *Handler) match(name string) bool {
 }
 
 func (h *Handler) handle(ctx context.Context, e Event) error {
-	r, err := h.extractor.extract(ctx, e)
+	r, closer, err := h.extractor.extract(ctx, e)
 	if err != nil {
 		return err
 	}
+	defer closer()
 
 	if h.Encoding != nil {
 		r = transform.NewReader(r, h.Encoding.NewDecoder())

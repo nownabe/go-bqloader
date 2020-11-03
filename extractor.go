@@ -10,7 +10,7 @@ import (
 
 // extractor extracts data from source such as Cloud Storage.
 type extractor interface {
-	extract(context.Context, Event) (io.Reader, error)
+	extract(context.Context, Event) (io.Reader, func(), error)
 }
 
 type defaultExtractor struct {
@@ -27,15 +27,14 @@ func newDefaultExtractor(ctx context.Context, project string) (extractor, error)
 }
 
 // TODO: Summarize error log (use xerrors).
-func (e *defaultExtractor) extract(ctx context.Context, ev Event) (io.Reader, error) {
+func (e *defaultExtractor) extract(ctx context.Context, ev Event) (io.Reader, func(), error) {
 	obj := e.storage.Bucket(ev.Bucket).Object(ev.Name)
 	r, err := obj.NewReader(ctx)
 	if err != nil {
 		log.Printf("failed to initialize object reader: %v", err)
-		return nil, err
+		return nil, nil, err
 	}
-	defer r.Close()
 	log.Printf("DEBUG r = %+v", r)
 
-	return r, nil
+	return r, func() { r.Close() }, nil
 }
