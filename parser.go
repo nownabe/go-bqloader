@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/csv"
 	"io"
+
+	"golang.org/x/xerrors"
 )
 
 // Parser parses files from storage.
@@ -14,6 +16,10 @@ var CSVParser Parser
 
 func init() {
 	CSVParser = func(_ context.Context, r io.Reader) ([][]string, error) {
-		return csv.NewReader(r).ReadAll()
+		records, err := csv.NewReader(r).ReadAll()
+		if err != nil {
+			return nil, xerrors.Errorf("failed to parse as CSV: %w", err)
+		}
+		return records, nil
 	}
 }

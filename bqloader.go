@@ -2,9 +2,10 @@ package bqloader
 
 import (
 	"context"
-	"io"
 	"log"
 	"sync"
+
+	"golang.org/x/xerrors"
 )
 
 // BQLoader loads data from Cloud Storage to BigQuery table.
@@ -12,15 +13,6 @@ type BQLoader interface {
 	AddHandler(context.Context, *Handler) error
 	Handle(context.Context, Event) error
 	MustAddHandler(context.Context, *Handler)
-}
-
-// Event is an event from Cloud Storage.
-type Event struct {
-	Name   string `json:"name"`
-	Bucket string `json:"bucket"`
-
-	// for test
-	source io.Reader
 }
 
 // New build a new Loader.
@@ -43,7 +35,7 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	if h.extractor == nil {
 		ex, err := newDefaultExtractor(ctx, h.Project)
 		if err != nil {
-			return err
+			return xerrors.Errorf("failed to build default extractor for %s: %w", h.Project, err)
 		}
 		h.extractor = ex
 	}
@@ -51,7 +43,8 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	if h.loader == nil {
 		loader, err := newDefaultLoader(ctx, h.Project, h.Dataset, h.Table)
 		if err != nil {
-			return err
+			return xerrors.Errorf("failed to build default loader for %s.%s.%s: %w",
+				h.Project, h.Dataset, h.Table, err)
 		}
 		h.loader = loader
 	}
@@ -79,7 +72,7 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 			log.Printf("handler matches")
 			if err := h.handle(ctx, e); err != nil {
 				log.Printf("error: %v", err)
-				return err
+				return xerrors.Errorf("failed to handle: %w", err)
 			}
 		}
 	}

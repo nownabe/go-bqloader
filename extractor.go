@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"cloud.google.com/go/storage"
+	"golang.org/x/xerrors"
 )
 
 // extractor extracts data from source such as Cloud Storage.
@@ -20,7 +21,7 @@ type defaultExtractor struct {
 func newDefaultExtractor(ctx context.Context, project string) (extractor, error) {
 	s, err := storage.NewClient(ctx)
 	if err != nil {
-		return nil, err
+		return nil, xerrors.Errorf("failed to build storage client for %s: %w", project, err)
 	}
 
 	return &defaultExtractor{storage: s}, nil
@@ -32,7 +33,7 @@ func (e *defaultExtractor) extract(ctx context.Context, ev Event) (io.Reader, fu
 	r, err := obj.NewReader(ctx)
 	if err != nil {
 		log.Printf("failed to initialize object reader: %v", err)
-		return nil, nil, err
+		return nil, nil, xerrors.Errorf("failed to get reader of %s: %w", ev.FullPath(), err)
 	}
 	log.Printf("DEBUG r = %+v", r)
 
