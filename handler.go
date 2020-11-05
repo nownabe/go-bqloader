@@ -7,6 +7,7 @@ import (
 
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
+	"golang.org/x/xerrors"
 )
 
 // Handler defines how to handle events which match specified pattern.
@@ -43,7 +44,7 @@ func (h *Handler) match(name string) bool {
 func (h *Handler) handle(ctx context.Context, e Event) error {
 	r, closer, err := h.extractor.extract(ctx, e)
 	if err != nil {
-		return err
+		return xerrors.Errorf("failed to extract: %w", err)
 	}
 	defer closer()
 
@@ -54,7 +55,7 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 	source, err := h.Parser(ctx, r)
 	if err != nil {
 		log.Printf("[%s] failed to parse object: %v", h.Name, err)
-		return err
+		return xerrors.Errorf("failed to parse: %w", err)
 	}
 	source = source[h.SkipLeadingRows:]
 
@@ -65,7 +66,7 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 		record, err := h.Projector(i, r)
 		if err != nil {
 			log.Printf("[%s] failed to project row %d: %v", h.Name, i+h.SkipLeadingRows, err)
-			return err
+			return xerrors.Errorf("failed to project row %d (line %d): %w", i, i+h.SkipLeadingRows, err)
 		}
 
 		records[i] = record
@@ -73,5 +74,9 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 
 	log.Printf("[%s] DEBUG records = %+v", h.Name, records)
 
-	return h.loader.load(ctx, records)
+	if err := h.loader.load(ctx, records); err != nil {
+		return xerrors.Errorf("failed to load: %w", err)
+	}
+
+	return nil
 }
