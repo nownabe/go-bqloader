@@ -2,10 +2,11 @@ package bqloader
 
 import (
 	"context"
+	"fmt"
 	"io"
-	"log"
 
 	"cloud.google.com/go/storage"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/xerrors"
 )
 
@@ -29,13 +30,15 @@ func newDefaultExtractor(ctx context.Context, project string) (extractor, error)
 
 // TODO: Summarize error log (use xerrors).
 func (e *defaultExtractor) extract(ctx context.Context, ev Event) (io.Reader, func(), error) {
+	l := log.Ctx(ctx)
+
 	obj := e.storage.Bucket(ev.Bucket).Object(ev.Name)
 	r, err := obj.NewReader(ctx)
 	if err != nil {
-		log.Printf("failed to initialize object reader: %v", err)
+		l.Error().Msg(fmt.Sprintf("failed to initialize object reader: %v", err))
 		return nil, nil, xerrors.Errorf("failed to get reader of %s: %w", ev.FullPath(), err)
 	}
-	log.Printf("DEBUG r = %+v", r)
+	l.Debug().Msg(fmt.Sprintf("DEBUG r = %+v", r))
 
 	return r, func() { r.Close() }, nil
 }

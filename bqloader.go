@@ -2,9 +2,11 @@ package bqloader
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"os"
 	"sync"
 
+	"github.com/rs/zerolog"
 	"golang.org/x/xerrors"
 )
 
@@ -16,16 +18,19 @@ type BQLoader interface {
 }
 
 // New build a new Loader.
+// TODO: Use zerolog.ConsoleWriter for development.
 func New() BQLoader {
 	return &bqloader{
 		handlers: []*Handler{},
 		mu:       sync.RWMutex{},
+		logger:   zerolog.New(os.Stdout).With().Timestamp().Logger().Hook(severityHook{}),
 	}
 }
 
 type bqloader struct {
 	handlers []*Handler
 	mu       sync.RWMutex
+	logger   zerolog.Logger
 }
 
 func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
@@ -60,22 +65,40 @@ func (l *bqloader) MustAddHandler(ctx context.Context, h *Handler) {
 	}
 }
 
+/*
+	TODO: Use context logger with fields.
+	TODO: Use Cloud Functions Metadata https://godoc.org/cloud.google.com/go/functions/metadata
+*/
 func (l *bqloader) Handle(ctx context.Context, e Event) error {
-	log.Printf("loader started")
-	defer log.Printf("loader finished")
+	l.logger.Info().Msg("BQLoader started to handle an event")
+	defer l.logger.Info().Msg("BQLoader finished to handle an envent")
 
-	log.Printf("file name = %s", e.Name)
+	l.logger.Info().Msg(fmt.Sprintf("file name = %s", e.Name))
 
 	for _, h := range l.handlers {
-		log.Printf("handler = %+v", h)
+		l.logger.Info().Msg(fmt.Sprintf("handler = %+v", h))
 		if h.match(e.Name) {
-			log.Printf("handler matches")
+			l.logger.Info().Msg("handler matches")
+			ctx := l.logger.WithContext(ctx)
 			if err := h.handle(ctx, e); err != nil {
-				log.Printf("error: %v", err)
+				// TODO: Use l.logger.Err(err)
+				l.logger.Error().Msg(fmt.Sprintf("error: %v", err))
 				return xerrors.Errorf("failed to handle: %w", err)
 			}
 		}
 	}
 
 	return nil
+}
+
+/*
+	severity log field is used as Cloud Logging severity
+	See https://cloud.google.com/functions/docs/monitoring/logging#processing_special_json_fields_in_messages
+*/
+type severityHook struct{}
+
+func (h severityHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
+	if level != zerolog.NoLevel {
+		e.Str("severity", level.String())
+	}
 }
