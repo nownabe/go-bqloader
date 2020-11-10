@@ -36,7 +36,7 @@ func TestLoader(t *testing.T) {
 
 	ctx := context.Background()
 
-	loader, err := New(WithPrettyLogging())
+	loader, err := New(WithPrettyLogging(), WithLogLevel("debug"))
 	if err != nil {
 		t.Fatal(err)
 	}

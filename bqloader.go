@@ -24,6 +24,7 @@ func New(opts ...Option) (BQLoader, error) {
 		handlers:      []*Handler{},
 		mu:            sync.RWMutex{},
 		prettyLogging: false,
+		logLevel:      zerolog.ErrorLevel,
 	}
 
 	for _, o := range opts {
@@ -38,7 +39,7 @@ func New(opts ...Option) (BQLoader, error) {
 	} else {
 		w = os.Stdout
 	}
-	l := zerolog.New(w).With().Timestamp().Logger().Hook(severityHook{})
+	l := zerolog.New(w).Level(bq.logLevel).With().Timestamp().Logger().Hook(severityHook{})
 	bq.logger = &l
 
 	return bq, nil
@@ -49,6 +50,7 @@ type bqloader struct {
 	mu            sync.RWMutex
 	logger        *zerolog.Logger
 	prettyLogging bool
+	logLevel      zerolog.Level
 }
 
 func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
