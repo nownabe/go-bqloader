@@ -60,7 +60,6 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 
 	source, err := h.Parser(ctx, r)
 	if err != nil {
-		l.Error().Msg(fmt.Sprintf("[%s] failed to parse object: %v", h.Name, err))
 		return xerrors.Errorf("failed to parse: %w", err)
 	}
 	source = source[h.SkipLeadingRows:]
@@ -71,7 +70,6 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 	for i, r := range source {
 		record, err := h.Projector(i, r)
 		if err != nil {
-			l.Error().Msg(fmt.Sprintf("[%s] failed to project row %d: %v", h.Name, uint(i)+h.SkipLeadingRows, err))
 			return xerrors.Errorf("failed to project row %d (line %d): %w", i, uint(i)+h.SkipLeadingRows, err)
 		}
 

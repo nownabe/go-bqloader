@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
-	"fmt"
 
 	"cloud.google.com/go/bigquery"
-	"github.com/rs/zerolog/log"
 	"golang.org/x/xerrors"
 )
 
@@ -32,14 +30,10 @@ func newDefaultLoader(ctx context.Context, project, dataset, table string) (load
 	return &defaultLoader{table: t}, nil
 }
 
-// TODO: Summarize log (use xerrors)
 func (l *defaultLoader) load(ctx context.Context, records [][]string) error {
-	logger := log.Ctx(ctx)
-
 	// TODO: Make output format more efficient. e.g. gzip.
 	buf := &bytes.Buffer{}
 	if err := csv.NewWriter(buf).WriteAll(records); err != nil {
-		logger.Error().Msg(fmt.Sprintf("failed to write csv: %v", err))
 		return xerrors.Errorf("failed to write csv into buffer: %w", err)
 	}
 	rs := bigquery.NewReaderSource(buf)
@@ -48,18 +42,15 @@ func (l *defaultLoader) load(ctx context.Context, records [][]string) error {
 
 	job, err := loader.Run(ctx)
 	if err != nil {
-		logger.Error().Msg(fmt.Sprintf("failed to run bigquery load job: %v", err))
 		return xerrors.Errorf("failed to run bigquery load job: %w", err)
 	}
 
 	status, err := job.Wait(ctx)
 	if err != nil {
-		logger.Error().Msg(fmt.Sprintf("failed to wait job: %v", err))
 		return xerrors.Errorf("failed to wait bigquery job: %w", err)
 	}
 
 	if status.Err() != nil {
-		logger.Error().Msg(fmt.Sprintf("failed to load csv: %v", status.Errors))
 		return xerrors.Errorf("bigquery load job failed: %w", status.Err())
 	}
 
