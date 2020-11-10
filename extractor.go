@@ -2,11 +2,9 @@ package bqloader
 
 import (
 	"context"
-	"fmt"
 	"io"
 
 	"cloud.google.com/go/storage"
-	"github.com/rs/zerolog/log"
 	"golang.org/x/xerrors"
 )
 
@@ -29,14 +27,11 @@ func newDefaultExtractor(ctx context.Context, project string) (extractor, error)
 }
 
 func (e *defaultExtractor) extract(ctx context.Context, ev Event) (io.Reader, func(), error) {
-	l := log.Ctx(ctx)
-
 	obj := e.storage.Bucket(ev.Bucket).Object(ev.Name)
 	r, err := obj.NewReader(ctx)
 	if err != nil {
 		return nil, nil, xerrors.Errorf("failed to get reader of %s: %w", ev.FullPath(), err)
 	}
-	l.Debug().Msg(fmt.Sprintf("DEBUG r = %+v", r))
 
 	return r, func() { r.Close() }, nil
 }

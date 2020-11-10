@@ -2,7 +2,6 @@ package bqloader
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 
 	"github.com/rs/zerolog"
@@ -75,8 +74,6 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 
 		records[i] = record
 	}
-
-	l.Info().Msg(fmt.Sprintf("[%s] DEBUG records = %+v", h.Name, records))
 
 	if err := h.loader.load(ctx, records); err != nil {
 		return xerrors.Errorf("failed to load: %w", err)
