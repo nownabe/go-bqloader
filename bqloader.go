@@ -2,7 +2,6 @@ package bqloader
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"sync"
 
@@ -79,9 +78,9 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 		if h.match(e.Name) {
 			l := h.logger(logger)
 			if err := h.handle(l.WithContext(ctx), e); err != nil {
-				// TODO: Use l.logger.Err(err)
-				l.Error().Msg(fmt.Sprintf("error: %v", err))
-				return xerrors.Errorf("failed to handle: %w", err)
+				err = xerrors.Errorf("failed to handle: %w", err)
+				l.Err(err).Msg(err.Error())
+				return err
 			}
 		}
 	}
