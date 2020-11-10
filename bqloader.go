@@ -66,23 +66,20 @@ func (l *bqloader) MustAddHandler(ctx context.Context, h *Handler) {
 }
 
 /*
-	TODO: Use context logger with fields.
 	TODO: Use Cloud Functions Metadata https://godoc.org/cloud.google.com/go/functions/metadata
 */
 func (l *bqloader) Handle(ctx context.Context, e Event) error {
-	l.logger.Info().Msg("BQLoader started to handle an event")
-	defer l.logger.Info().Msg("BQLoader finished to handle an envent")
+	logger := e.logger(l.logger)
 
-	l.logger.Info().Msg(fmt.Sprintf("file name = %s", e.Name))
+	logger.Info().Msg("BQLoader started to handle an event.")
+	defer logger.Info().Msg("BQLoader finished to handle an envent.")
 
 	for _, h := range l.handlers {
-		l.logger.Info().Msg(fmt.Sprintf("handler = %+v", h))
 		if h.match(e.Name) {
-			l.logger.Info().Msg("handler matches")
-			ctx := l.logger.WithContext(ctx)
-			if err := h.handle(ctx, e); err != nil {
+			l := h.logger(logger)
+			if err := h.handle(l.WithContext(ctx), e); err != nil {
 				// TODO: Use l.logger.Err(err)
-				l.logger.Error().Msg(fmt.Sprintf("error: %v", err))
+				l.Error().Msg(fmt.Sprintf("error: %v", err))
 				return xerrors.Errorf("failed to handle: %w", err)
 			}
 		}

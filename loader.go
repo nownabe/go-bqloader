@@ -32,7 +32,6 @@ func newDefaultLoader(ctx context.Context, project, dataset, table string) (load
 	return &defaultLoader{table: t}, nil
 }
 
-// TODO: Log with handler name (use context).
 // TODO: Summarize log (use xerrors)
 func (l *defaultLoader) load(ctx context.Context, records [][]string) error {
 	logger := log.Ctx(ctx)

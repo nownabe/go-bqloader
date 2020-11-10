@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
@@ -44,6 +45,8 @@ func (h *Handler) match(name string) bool {
 
 func (h *Handler) handle(ctx context.Context, e Event) error {
 	l := log.Ctx(ctx)
+	l.Info().Msg("Handler started to handle an event.")
+	defer l.Info().Msg("Handler finished to handle an event.")
 
 	r, closer, err := h.extractor.extract(ctx, e)
 	if err != nil {
@@ -82,4 +85,16 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 	}
 
 	return nil
+}
+
+func (h *Handler) logger(l zerolog.Logger) zerolog.Logger {
+	d := zerolog.Dict().
+		Str("name", h.Name).
+		Str("pattern", h.Pattern.String()).
+		Int("skipLeadingRows", h.SkipLeadingRows).
+		Str("project", h.Project).
+		Str("dataset", h.Dataset).
+		Str("table", h.Table)
+
+	return l.With().Dict("handler", d).Logger()
 }
