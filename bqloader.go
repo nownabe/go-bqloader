@@ -18,7 +18,6 @@ type BQLoader interface {
 }
 
 // New build a new Loader.
-// TODO: Use zerolog.ConsoleWriter for development.
 func New(opts ...Option) (BQLoader, error) {
 	bq := &bqloader{
 		handlers:      []*Handler{},
