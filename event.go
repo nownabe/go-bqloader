@@ -21,10 +21,11 @@ func (e *Event) FullPath() string {
 	return fmt.Sprintf("gs://%s/%s", e.Bucket, e.Name)
 }
 
-func (e *Event) logger(l zerolog.Logger) zerolog.Logger {
+func (e *Event) logger(l *zerolog.Logger) *zerolog.Logger {
 	d := zerolog.Dict().
 		Str("name", e.Name).
 		Str("bucket", e.Bucket)
 
-	return l.With().Dict("event", d).Logger()
+	logger := l.With().Dict("event", d).Logger()
+	return &logger
 }

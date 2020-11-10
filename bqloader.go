@@ -20,17 +20,18 @@ type BQLoader interface {
 // New build a new Loader.
 // TODO: Use zerolog.ConsoleWriter for development.
 func New() BQLoader {
+	l := zerolog.New(os.Stdout).With().Timestamp().Logger().Hook(severityHook{})
 	return &bqloader{
 		handlers: []*Handler{},
 		mu:       sync.RWMutex{},
-		logger:   zerolog.New(os.Stdout).With().Timestamp().Logger().Hook(severityHook{}),
+		logger:   &l,
 	}
 }
 
 type bqloader struct {
 	handlers []*Handler
 	mu       sync.RWMutex
-	logger   zerolog.Logger
+	logger   *zerolog.Logger
 }
 
 func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {

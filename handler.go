@@ -87,7 +87,7 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 	return nil
 }
 
-func (h *Handler) logger(l zerolog.Logger) zerolog.Logger {
+func (h *Handler) logger(l *zerolog.Logger) *zerolog.Logger {
 	d := zerolog.Dict().
 		Str("name", h.Name).
 		Str("pattern", h.Pattern.String()).
@@ -95,6 +95,6 @@ func (h *Handler) logger(l zerolog.Logger) zerolog.Logger {
 		Str("project", h.Project).
 		Str("dataset", h.Dataset).
 		Str("table", h.Table)
-
-	return l.With().Dict("handler", d).Logger()
+	logger := l.With().Dict("handler", d).Logger()
+	return &logger
 }
