@@ -2,6 +2,7 @@ package bqloader
 
 import (
 	"context"
+	"io"
 	"os"
 	"sync"
 
@@ -18,19 +19,36 @@ type BQLoader interface {
 
 // New build a new Loader.
 // TODO: Use zerolog.ConsoleWriter for development.
-func New() BQLoader {
-	l := zerolog.New(os.Stdout).With().Timestamp().Logger().Hook(severityHook{})
-	return &bqloader{
-		handlers: []*Handler{},
-		mu:       sync.RWMutex{},
-		logger:   &l,
+func New(opts ...Option) (BQLoader, error) {
+	bq := &bqloader{
+		handlers:      []*Handler{},
+		mu:            sync.RWMutex{},
+		prettyLogging: false,
 	}
+
+	for _, o := range opts {
+		if err := o.apply(bq); err != nil {
+			return nil, err
+		}
+	}
+
+	var w io.Writer
+	if bq.prettyLogging {
+		w = zerolog.ConsoleWriter{Out: os.Stdout}
+	} else {
+		w = os.Stdout
+	}
+	l := zerolog.New(w).With().Timestamp().Logger().Hook(severityHook{})
+	bq.logger = &l
+
+	return bq, nil
 }
 
 type bqloader struct {
-	handlers []*Handler
-	mu       sync.RWMutex
-	logger   *zerolog.Logger
+	handlers      []*Handler
+	mu            sync.RWMutex
+	logger        *zerolog.Logger
+	prettyLogging bool
 }
 
 func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
