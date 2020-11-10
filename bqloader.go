@@ -75,8 +75,8 @@ func (l *bqloader) MustAddHandler(ctx context.Context, h *Handler) {
 func (l *bqloader) Handle(ctx context.Context, e Event) error {
 	logger := e.logger(l.logger)
 
-	logger.Info().Msg("BQLoader started to handle an event.")
-	defer logger.Info().Msg("BQLoader finished to handle an envent.")
+	logger.Info().Msg("bqloader started to handle an event")
+	defer logger.Info().Msg("bqloader finished to handle an envent")
 
 	for _, h := range l.handlers {
 		if h.match(e.Name) {

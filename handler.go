@@ -45,8 +45,8 @@ func (h *Handler) match(name string) bool {
 
 func (h *Handler) handle(ctx context.Context, e Event) error {
 	l := log.Ctx(ctx)
-	l.Info().Msg("Handler started to handle an event.")
-	defer l.Info().Msg("Handler finished to handle an event.")
+	l.Info().Msg("handler started to handle an event.")
+	defer l.Info().Msg("handler finished to handle an event.")
 
 	r, closer, err := h.extractor.extract(ctx, e)
 	if err != nil {
