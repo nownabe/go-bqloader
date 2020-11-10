@@ -36,7 +36,10 @@ func TestLoader(t *testing.T) {
 
 	ctx := context.Background()
 
-	loader := New()
+	loader, err := New(WithPrettyLogging(), WithLogLevel("debug"))
+	if err != nil {
+		t.Fatal(err)
+	}
 	loader.MustAddHandler(ctx, handler)
 
 	src := bytes.NewBufferString("2020/11/21,foo,123")

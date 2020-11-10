@@ -2,9 +2,11 @@ package bqloader
 
 import (
 	"context"
-	"log"
+	"io"
+	"os"
 	"sync"
 
+	"github.com/rs/zerolog"
 	"golang.org/x/xerrors"
 )
 
@@ -16,16 +18,38 @@ type BQLoader interface {
 }
 
 // New build a new Loader.
-func New() BQLoader {
-	return &bqloader{
-		handlers: []*Handler{},
-		mu:       sync.RWMutex{},
+func New(opts ...Option) (BQLoader, error) {
+	bq := &bqloader{
+		handlers:      []*Handler{},
+		mu:            sync.RWMutex{},
+		prettyLogging: false,
+		logLevel:      zerolog.ErrorLevel,
 	}
+
+	for _, o := range opts {
+		if err := o.apply(bq); err != nil {
+			return nil, err
+		}
+	}
+
+	var w io.Writer
+	if bq.prettyLogging {
+		w = zerolog.ConsoleWriter{Out: os.Stdout}
+	} else {
+		w = os.Stdout
+	}
+	l := zerolog.New(w).Level(bq.logLevel).With().Timestamp().Logger().Hook(severityHook{})
+	bq.logger = &l
+
+	return bq, nil
 }
 
 type bqloader struct {
-	handlers []*Handler
-	mu       sync.RWMutex
+	handlers      []*Handler
+	mu            sync.RWMutex
+	logger        *zerolog.Logger
+	prettyLogging bool
+	logLevel      zerolog.Level
 }
 
 func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
@@ -35,7 +59,9 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	if h.extractor == nil {
 		ex, err := newDefaultExtractor(ctx, h.Project)
 		if err != nil {
-			return xerrors.Errorf("failed to build default extractor for %s: %w", h.Project, err)
+			err = xerrors.Errorf("failed to build default extractor for project '%s': %w", h.Project, err)
+			h.logger(l.logger).Err(err).Msg(err.Error())
+			return err
 		}
 		h.extractor = ex
 	}
@@ -43,8 +69,10 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	if h.loader == nil {
 		loader, err := newDefaultLoader(ctx, h.Project, h.Dataset, h.Table)
 		if err != nil {
-			return xerrors.Errorf("failed to build default loader for %s.%s.%s: %w",
+			err = xerrors.Errorf("failed to build default loader for table '%s.%s.%s': %w",
 				h.Project, h.Dataset, h.Table, err)
+			h.logger(l.logger).Err(err).Msg(err.Error())
+			return err
 		}
 		h.loader = loader
 	}
@@ -60,22 +88,37 @@ func (l *bqloader) MustAddHandler(ctx context.Context, h *Handler) {
 	}
 }
 
+/*
+	TODO: Use Cloud Functions Metadata https://godoc.org/cloud.google.com/go/functions/metadata
+*/
 func (l *bqloader) Handle(ctx context.Context, e Event) error {
-	log.Printf("loader started")
-	defer log.Printf("loader finished")
+	logger := e.logger(l.logger)
 
-	log.Printf("file name = %s", e.Name)
+	logger.Info().Msg("bqloader started to handle an event")
+	defer logger.Info().Msg("bqloader finished to handle an envent")
 
 	for _, h := range l.handlers {
-		log.Printf("handler = %+v", h)
 		if h.match(e.Name) {
-			log.Printf("handler matches")
-			if err := h.handle(ctx, e); err != nil {
-				log.Printf("error: %v", err)
-				return xerrors.Errorf("failed to handle: %w", err)
+			l := h.logger(logger)
+			if err := h.handle(l.WithContext(ctx), e); err != nil {
+				err = xerrors.Errorf("failed to handle: %w", err)
+				l.Err(err).Msg(err.Error())
+				return err
 			}
 		}
 	}
 
 	return nil
+}
+
+/*
+	severity log field is used as Cloud Logging severity
+	See https://cloud.google.com/functions/docs/monitoring/logging#processing_special_json_fields_in_messages
+*/
+type severityHook struct{}
+
+func (h severityHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
+	if level != zerolog.NoLevel {
+		e.Str("severity", level.String())
+	}
 }

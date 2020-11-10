@@ -2,9 +2,10 @@ package bqloader
 
 import (
 	"context"
-	"log"
 	"regexp"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
 	"golang.org/x/xerrors"
@@ -19,7 +20,7 @@ type Handler struct {
 	Encoding        encoding.Encoding
 	Parser          Parser
 	Projector       Projector
-	SkipLeadingRows int
+	SkipLeadingRows uint
 
 	// Project specifies GCP project name of destination BigQuery table.
 	Project string
@@ -42,6 +43,10 @@ func (h *Handler) match(name string) bool {
 }
 
 func (h *Handler) handle(ctx context.Context, e Event) error {
+	l := log.Ctx(ctx)
+	l.Info().Msg("handler started to handle an event.")
+	defer l.Info().Msg("handler finished to handle an event.")
+
 	r, closer, err := h.extractor.extract(ctx, e)
 	if err != nil {
 		return xerrors.Errorf("failed to extract: %w", err)
@@ -54,7 +59,6 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 
 	source, err := h.Parser(ctx, r)
 	if err != nil {
-		log.Printf("[%s] failed to parse object: %v", h.Name, err)
 		return xerrors.Errorf("failed to parse: %w", err)
 	}
 	source = source[h.SkipLeadingRows:]
@@ -65,18 +69,27 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 	for i, r := range source {
 		record, err := h.Projector(i, r)
 		if err != nil {
-			log.Printf("[%s] failed to project row %d: %v", h.Name, i+h.SkipLeadingRows, err)
-			return xerrors.Errorf("failed to project row %d (line %d): %w", i, i+h.SkipLeadingRows, err)
+			return xerrors.Errorf("failed to project row %d (line %d): %w", i, uint(i)+h.SkipLeadingRows, err)
 		}
 
 		records[i] = record
 	}
-
-	log.Printf("[%s] DEBUG records = %+v", h.Name, records)
 
 	if err := h.loader.load(ctx, records); err != nil {
 		return xerrors.Errorf("failed to load: %w", err)
 	}
 
 	return nil
+}
+
+func (h *Handler) logger(l *zerolog.Logger) *zerolog.Logger {
+	d := zerolog.Dict().
+		Str("name", h.Name).
+		Str("pattern", h.Pattern.String()).
+		Uint("skipLeadingRows", h.SkipLeadingRows).
+		Str("project", h.Project).
+		Str("dataset", h.Dataset).
+		Str("table", h.Table)
+	logger := l.With().Dict("handler", d).Logger()
+	return &logger
 }
