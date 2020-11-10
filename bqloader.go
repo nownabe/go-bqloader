@@ -40,7 +40,9 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	if h.extractor == nil {
 		ex, err := newDefaultExtractor(ctx, h.Project)
 		if err != nil {
-			return xerrors.Errorf("failed to build default extractor for %s: %w", h.Project, err)
+			err = xerrors.Errorf("failed to build default extractor for %s: %w", h.Project, err)
+			h.logger(l.logger).Err(err).Msg(err.Error())
+			return err
 		}
 		h.extractor = ex
 	}
@@ -48,8 +50,10 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	if h.loader == nil {
 		loader, err := newDefaultLoader(ctx, h.Project, h.Dataset, h.Table)
 		if err != nil {
-			return xerrors.Errorf("failed to build default loader for %s.%s.%s: %w",
+			err = xerrors.Errorf("failed to build default loader for %s.%s.%s: %w",
 				h.Project, h.Dataset, h.Table, err)
+			h.logger(l.logger).Err(err).Msg(err.Error())
+			return err
 		}
 		h.loader = loader
 	}
