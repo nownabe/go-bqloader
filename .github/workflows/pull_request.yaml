@@ -34,7 +34,7 @@ jobs:
         with:
           golangci_lint_flags: "--enable-all --exclude-use-default=false"
           level: warning
-          reporter: github-pr-check
+          reporter: github-pr-review
 
   languagetool:
     name: languagetool job
