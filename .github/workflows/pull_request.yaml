@@ -8,11 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - uses: actions/setup-go@v2
         with:
           go-version: 1.13
-
       - uses: actions/cache@v2
         name: Cache Go Modules
         id: cache
@@ -21,16 +19,14 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
       - name: Download Go Modules
         if: steps.cache.outputs.cache-hit != 'true'
         run: go mod download
-
       - name: Run tests
         run: go test -v ./...
 
   golangci-lint:
-    name: golangci-lint
+    name: golangci-lint job
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -42,14 +38,14 @@ jobs:
           reporter: github-pr-check
 
   languagetool:
-    name: languagetool
+    name: languagetool job
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: reviewdog/action-languagetool@v1
         with:
           github_token: ${{ secrets.github_token }}
-          reporter: github-check
+          reporter: github-pr-check
           level: info
           patterns: |
             **/*
@@ -62,7 +58,7 @@ jobs:
       - uses: reviewdog/action-shellcheck@v1
         with:
           github_token: ${{ secrets.github_token }}
-          reporter: github-pr-review
+          reporter: github-pr-check
 
   alex:
     name: alex job
@@ -72,5 +68,5 @@ jobs:
       - uses: reviewdog/action-alex@v1
         with:
           github_token: ${{ secrets.github_token }}
-          reporter: github-check
+          reporter: github-pr-check
           level: info
