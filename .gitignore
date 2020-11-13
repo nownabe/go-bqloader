@@ -1,1 +1,8 @@
 .envrc
+
+.gcloudignore
+deploy.envrc
+deploy.sh
+func.go
+source.csv
+

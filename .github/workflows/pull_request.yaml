@@ -1,0 +1,70 @@
+name: Pull Request Workflow
+on:
+  pull_request:
+
+jobs:
+  test:
+    name: test job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.13
+      - uses: actions/cache@v2
+        name: Cache Go Modules
+        id: cache
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Download Go Modules
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: go mod download
+      - name: Run tests
+        run: go test -v -race -coverpkg=./... -coverprofile=coverage.txt ./...
+      - uses: codecov/codecov-action@v1
+
+  golangci-lint:
+    name: golangci-lint job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: reviewdog/action-golangci-lint@v1
+        with:
+          golangci_lint_flags: "--enable-all --exclude-use-default=false"
+          level: warning
+          reporter: github-pr-review
+          fail_on_error: true
+
+  languagetool:
+    name: languagetool job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: reviewdog/action-languagetool@v1
+        with:
+          reporter: github-pr-review
+          level: info
+
+  shellcheck:
+    name: shellcheck job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: reviewdog/action-shellcheck@v1
+        with:
+          reporter: github-pr-review
+          level: warning
+          fail_on_error: true
+
+  alex:
+    name: alex job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: reviewdog/action-alex@v1
+        with:
+          reporter: github-pr-review
+          level: info
