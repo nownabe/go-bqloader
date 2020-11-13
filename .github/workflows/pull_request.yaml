@@ -23,7 +23,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: go mod download
       - name: Run tests
-        run: go test -v ./...
+        run: go test -v -race ./...
 
   golangci-lint:
     name: golangci-lint job
