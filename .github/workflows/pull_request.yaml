@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: reviewdog/action-golangci-lint@v1
         with:
-          github_token: ${{ secrets.github_token }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           golangci_lint_flags: "--enable-all --exclude-use-default=false"
           level: warning
           reporter: github-pr-check
@@ -44,7 +44,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: reviewdog/action-languagetool@v1
         with:
-          github_token: ${{ secrets.github_token }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-check
           level: info
           patterns: |
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: reviewdog/action-shellcheck@v1
         with:
-          github_token: ${{ secrets.github_token }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-check
 
   alex:
@@ -67,6 +67,6 @@ jobs:
       - uses: actions/checkout@v2
       - uses: reviewdog/action-alex@v1
         with:
-          github_token: ${{ secrets.github_token }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-pr-check
           level: info
