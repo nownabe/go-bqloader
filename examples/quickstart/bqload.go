@@ -16,7 +16,11 @@ import (
 var loader bqloader.BQLoader
 
 func init() {
-	loader = bqloader.New()
+	var err error
+	loader, err = bqloader.New(bqloader.WithLogLevel("debug"))
+	if err != nil {
+		panic(err)
+	}
 	loader.MustAddHandler(context.Background(), newHandler())
 }
 

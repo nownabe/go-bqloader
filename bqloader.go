@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 
+	"cloud.google.com/go/functions/metadata"
 	"github.com/rs/zerolog"
 	"golang.org/x/xerrors"
 )
@@ -88,11 +89,8 @@ func (l *bqloader) MustAddHandler(ctx context.Context, h *Handler) {
 	}
 }
 
-/*
-	TODO: Use Cloud Functions Metadata https://godoc.org/cloud.google.com/go/functions/metadata
-*/
 func (l *bqloader) Handle(ctx context.Context, e Event) error {
-	logger := e.logger(l.logger)
+	logger := contextualLogger(ctx, e, l.logger)
 
 	logger.Info().Msg("bqloader started to handle an event")
 	defer logger.Info().Msg("bqloader finished to handle an envent")
@@ -121,4 +119,30 @@ func (h severityHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
 	if level != zerolog.NoLevel {
 		e.Str("severity", level.String())
 	}
+}
+
+func contextualLogger(ctx context.Context, e Event, l *zerolog.Logger) *zerolog.Logger {
+	logger := e.logger(l)
+
+	md, err := metadata.FromContext(ctx)
+	if err == nil {
+		rd := zerolog.Dict().
+			Str("service", md.Resource.Service).
+			Str("name", md.Resource.Name).
+			Str("type", md.Resource.Type).
+			Str("rawPath", md.Resource.RawPath)
+
+		d := zerolog.Dict().
+			Str("eventId", md.EventID).
+			Time("timestamp", md.Timestamp).
+			Str("eventType", md.EventType).
+			Dict("resource", rd)
+
+		ml := logger.With().Dict("metadata", d).Logger()
+		logger = &ml
+	} else {
+		logger.Warn().Msg(err.Error())
+	}
+
+	return logger
 }
