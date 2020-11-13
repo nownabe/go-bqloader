@@ -1,0 +1,29 @@
+name: Main Branch Workflow
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: test job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.13
+      - uses: actions/cache@v2
+        name: Cache Go Modules
+        id: cache
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Download Go Modules
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: go mod download
+      - name: Run tests
+        run: go test -v -race -coverpkg=./... -coverprofile=coverage.txt ./...
+      - uses: codecov/codecov-action@v1
