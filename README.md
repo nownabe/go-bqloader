@@ -18,7 +18,7 @@ go get -u go.nownabe.dev/bqloader
 
 ## Getting Started
 
-(*See [Quickstart example](https://github.com/nownabe/go-bqloader/tree/main/examples/quickstart) to get a full instruction.)
+(See [Quickstart example](https://github.com/nownabe/go-bqloader/tree/main/examples/quickstart) to get a full instruction.)
 
 For simple transforming and loading CSV, import the package `go.nownabe.dev/bqloader` and write your handler.
 
@@ -50,11 +50,11 @@ func init() {
 }
 
 func newHandler() *bqloader.Handler {
-  /*
-    Projectors transform each row.
-    This projector transforms date columns formatted as "2006/01/02" at the first column
-    into BigQuery date format like "2006-01-02".
-  */
+	/*
+		Projectors transform each row.
+		This projector transforms date columns formatted as "2006/01/02" at the first column
+		into BigQuery date format like "2006-01-02".
+	*/
 	projector := func(l int, r []string) ([]string, error) {
 		t, err := time.Parse("2006/01/02", r[0])
 		if err != nil {
@@ -69,7 +69,7 @@ func newHandler() *bqloader.Handler {
 	return &bqloader.Handler{
 		Name:            "mybank",                        // Handler name used in logging.
 		Pattern:         regexp.MustCompile("^mybank/"),  // Files matching this pattern are processed with this handler.
-    Encoding:        japanese.ShiftJIS,               // Encoding field specifies the encoding of input files.
+		Encoding:        japanese.ShiftJIS,               // Encoding field specifies the encoding of input files.
 		Parser:          bqloader.CSVParser,
 		Projector:       projector,
 		SkipLeadingRows: 1,
