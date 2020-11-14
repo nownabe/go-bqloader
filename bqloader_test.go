@@ -28,7 +28,7 @@ func TestLoader(t *testing.T) {
 	handler := &Handler{
 		Name:      "test-handler",
 		Pattern:   regexp.MustCompile("^test/"),
-		Parser:    CSVParser,
+		Parser:    CSVParser(),
 		Projector: projector,
 		extractor: te,
 		loader:    tl,
