@@ -5,6 +5,8 @@ bqloader
 ![Main Branch Workflow](https://github.com/nownabe/go-bqloader/workflows/Main%20Branch%20Workflow/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nownabe/go-bqloader)](https://goreportcard.com/report/github.com/nownabe/go-bqloader)
 [![codecov](https://codecov.io/gh/nownabe/go-bqloader/branch/main/graph/badge.svg)](https://codecov.io/gh/nownabe/go-bqloader)
+![GitHub](https://img.shields.io/github/license/nownabe/go-bqloader)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/nownabe/go-bqloader?sort=semver)
 
 bqloader is a simple ETL framework running on Cloud Functions to load data from Cloud Storage into BigQuery.
 
