@@ -43,7 +43,7 @@ func newHandler() *bqloader.Handler {
 		Name:            "quickstart",
 		Pattern:         regexp.MustCompile("^example_bank/"),
 		Encoding:        japanese.ShiftJIS,
-		Parser:          bqloader.CSVParser,
+		Parser:          bqloader.CSVParser(),
 		Projector:       projector,
 		SkipLeadingRows: 1,
 
