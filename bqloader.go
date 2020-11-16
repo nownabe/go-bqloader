@@ -101,14 +101,14 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 			l := h.logger(logger)
 			ctx := l.WithContext(ctx)
 			err := h.handle(ctx, e)
+
 			if err != nil {
 				err = xerrors.Errorf("failed to handle: %w", err)
 				l.Err(err).Msg(err.Error())
 			}
 
 			res := &Result{Event: e, Handler: h, Error: err}
-			nerr := h.Notifier.Notify(ctx, res)
-			if nerr != nil {
+			if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
 				nerr = xerrors.Errorf("failed to notify: %w", nerr)
 				l.Err(nerr).Msg(nerr.Error())
 			}
