@@ -19,6 +19,7 @@ type Handler struct {
 	Pattern         *regexp.Regexp
 	Encoding        encoding.Encoding
 	Parser          Parser
+	Notifier        Notifier
 	Projector       Projector
 	SkipLeadingRows uint
 
