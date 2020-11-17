@@ -1,4 +1,4 @@
-package bqloader
+package bqloader_test
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"go.nownabe.dev/bqloader"
 )
 
 type roundTripperFunc func(req *http.Request) (*http.Response, error)
@@ -27,7 +29,7 @@ func TestSlackNotifier(t *testing.T) {
 		}, nil
 	})
 
-	n := &SlackNotifier{
+	n := &bqloader.SlackNotifier{
 		Channel:    "#channel",
 		Token:      "token",
 		IconEmoji:  ":emoji:",
@@ -35,9 +37,9 @@ func TestSlackNotifier(t *testing.T) {
 		HTTPClient: client,
 	}
 
-	r := &Result{
-		Event:   Event{Name: "testfile"},
-		Handler: &Handler{Name: "myhandler"},
+	r := &bqloader.Result{
+		Event:   bqloader.Event{Name: "testfile"},
+		Handler: &bqloader.Handler{Name: "myhandler"},
 	}
 
 	err := n.Notify(context.Background(), r)
