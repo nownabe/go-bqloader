@@ -103,7 +103,7 @@ func (n *SlackNotifier) postMessage(ctx context.Context, m *slackMessage) error 
 
 	l.Debug().Msgf("body = %s", body)
 
-	if resp.StatusCode >= 400 {
+	if resp.StatusCode >= http.StatusBadRequest {
 		return xerrors.Errorf(
 			"slack webhook request failed with status code %d (%s)", resp.StatusCode, body)
 	}
