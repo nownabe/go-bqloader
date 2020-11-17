@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
 
 	"github.com/rs/zerolog/log"
 	"golang.org/x/xerrors"
@@ -26,10 +27,19 @@ type Result struct {
 
 // SlackNotifier is a notifier for Slack.
 type SlackNotifier struct {
-	Channel   string
+	Channel string
+	Token   string
+
+	// Optional.
 	IconEmoji string
-	Username  string
-	Token     string
+
+	// Optional.
+	Username string
+
+	// Optional.
+	HTTPClient *http.Client
+
+	once sync.Once
 }
 
 type slackMessage struct {
@@ -47,6 +57,12 @@ type slackResponse struct {
 // Notify notifies results to Slack channel.
 func (n *SlackNotifier) Notify(ctx context.Context, r *Result) error {
 	l := log.Ctx(ctx)
+
+	n.once.Do(func() {
+		if n.HTTPClient == nil {
+			n.HTTPClient = &http.Client{}
+		}
+	})
 
 	var text string
 	if r.Error == nil {
@@ -86,9 +102,7 @@ func (n *SlackNotifier) postMessage(ctx context.Context, m *slackMessage) error 
 	l.Debug().Msgf("req = %+v", req)
 	req.Header.Set("Authorization", "Bearer "+n.Token)
 
-	c := &http.Client{}
-
-	resp, err := c.Do(req.WithContext(ctx))
+	resp, err := n.HTTPClient.Do(req.WithContext(ctx))
 	if err != nil {
 		return xerrors.Errorf("failed to send request: %w", err)
 	}
