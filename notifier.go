@@ -54,14 +54,23 @@ func (n *SlackNotifier) Notify(ctx context.Context, r *Result) error {
 	} else {
 		text = fmt.Sprintf(`%s handler failed to load %s: %s`, r.Handler.Name, r.Event.Name, r.Error)
 	}
-	m := slackMessage{
+	m := &slackMessage{
 		Channel:   n.Channel,
 		IconEmoji: n.IconEmoji,
 		Text:      text,
 		Username:  n.Username,
 	}
-
 	l.Debug().Msgf("m = %+v", m)
+
+	if err := n.postMessage(ctx, m); err != nil {
+		return xerrors.Errorf("slack postMessage failed: %w", err)
+	}
+
+	return nil
+}
+
+func (n *SlackNotifier) postMessage(ctx context.Context, m *slackMessage) error {
+	l := log.Ctx(ctx)
 
 	reqJSON, err := json.Marshal(m)
 	if err != nil {
