@@ -100,8 +100,8 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 		if h.match(e.Name) {
 			l := h.logger(logger)
 			ctx := l.WithContext(ctx)
-			err := h.handle(ctx, e)
 
+			err := h.handle(ctx, e)
 			if err != nil {
 				err = xerrors.Errorf("failed to handle: %w", err)
 				l.Err(err).Msg(err.Error())

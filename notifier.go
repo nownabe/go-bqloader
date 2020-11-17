@@ -72,11 +72,13 @@ func (n *SlackNotifier) Notify(ctx context.Context, r *Result) error {
 	if err != nil {
 		return xerrors.Errorf("failed to build http request: %v", err)
 	}
+
 	req.Header.Set("Content-Type", "application/json")
 	l.Debug().Msgf("req = %+v", req)
 	req.Header.Set("Authorization", "Bearer "+n.Token)
 
 	c := &http.Client{}
+
 	resp, err := c.Do(req.WithContext(ctx))
 	if err != nil {
 		return xerrors.Errorf("failed to send request: %w", err)
@@ -89,6 +91,7 @@ func (n *SlackNotifier) Notify(ctx context.Context, r *Result) error {
 	if err != nil {
 		return xerrors.Errorf("failed to read response body: %w", err)
 	}
+
 	l.Debug().Msgf("body = %s", body)
 
 	if resp.StatusCode >= 400 {
