@@ -7,3 +7,6 @@ export FUNCTION_NAME="bqloader"
 export BIGQUERY_PROJECT_ID="$GCP_PROJECT"
 export BIGQUERY_DATASET_ID="bqloader"
 export BIGQUERY_TABLE_ID="quickstart"
+
+export SLACK_TOKEN="your slack bot token"
+export SLACK_CHANNEL="#your-channel"

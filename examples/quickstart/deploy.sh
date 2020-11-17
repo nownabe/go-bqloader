@@ -59,7 +59,8 @@ if [[ $yn = [yY] ]]; then
     --trigger-event google.storage.object.finalize \
     --entry-point BQLoad \
     --service-account $SERVICE_ACCOUNT \
-    --set-env-vars BIGQUERY_PROJECT_ID=$BIGQUERY_PROJECT_ID,BIGQUERY_DATASET_ID=$BIGQUERY_DATASET_ID,BIGQUERY_TABLE_ID=$BIGQUERY_TABLE_ID
+    --set-env-vars BIGQUERY_PROJECT_ID=$BIGQUERY_PROJECT_ID,BIGQUERY_DATASET_ID=$BIGQUERY_DATASET_ID,BIGQUERY_TABLE_ID=$BIGQUERY_TABLE_ID \
+    --set-env-vars SLACK_TOKEN=$SLACK_TOKEN,SLACK_CHANNEL=$SLACK_CHANNEL
 fi
 
 gsutil cp source.csv gs://$SOURCE_BUCKET/example_bank/source.csv
