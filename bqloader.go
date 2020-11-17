@@ -107,10 +107,12 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 				l.Err(err).Msg(err.Error())
 			}
 
-			res := &Result{Event: e, Handler: h, Error: err}
-			if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
-				nerr = xerrors.Errorf("failed to notify: %w", nerr)
-				l.Err(nerr).Msg(nerr.Error())
+			if h.Notifier != nil {
+				res := &Result{Event: e, Handler: h, Error: err}
+				if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
+					nerr = xerrors.Errorf("failed to notify: %w", nerr)
+					l.Err(nerr).Msg(nerr.Error())
+				}
 			}
 
 			// TODO: Avoid earlier return
