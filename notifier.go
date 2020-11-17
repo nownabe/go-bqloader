@@ -50,9 +50,9 @@ func (n *SlackNotifier) Notify(ctx context.Context, r *Result) error {
 
 	var text string
 	if r.Error == nil {
-		text = fmt.Sprintf(`%s handler successfully handled %s`, r.Handler.Name, r.Event.Name)
+		text = fmt.Sprintf(`%s handler successfully loaded %s`, r.Handler.Name, r.Event.Name)
 	} else {
-		text = fmt.Sprintf(`%s handler failed to handle %s: %s`, r.Handler.Name, r.Event.Name, r.Error)
+		text = fmt.Sprintf(`%s handler failed to load %s: %s`, r.Handler.Name, r.Event.Name, r.Error)
 	}
 	m := slackMessage{
 		Channel:   n.Channel,
