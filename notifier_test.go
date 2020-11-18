@@ -29,41 +29,43 @@ type slackMessage struct {
 	Username  string `json:"username,omitempty"`
 }
 
-var validSlackToken = "validToken"
+const validSlackToken = "validToken"
 
-var slackClient = newTestClient(func(req *http.Request) *http.Response {
-	resBody := func() string {
-		if req.Header.Get("Authorization") != "Bearer "+validSlackToken {
-			return `{"ok":false,"error":"not_authed"}`
+func newSlackClient() *http.Client {
+	return newTestClient(func(req *http.Request) *http.Response {
+		resBody := func() string {
+			if req.Header.Get("Authorization") != "Bearer "+validSlackToken {
+				return `{"ok":false,"error":"not_authed"}`
+			}
+
+			reqBody, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				return ""
+			}
+
+			var msg slackMessage
+			if err := json.Unmarshal(reqBody, &msg); err != nil {
+				return `{"ok":false,"error":"invalid_form_data"}`
+			}
+
+			if msg.Channel == "" {
+				return `{"ok":false,"error":"channel_not_found"}`
+			}
+
+			return `{"ok":true}`
+		}()
+
+		if resBody == "" {
+			return &http.Response{StatusCode: http.StatusInternalServerError}
 		}
 
-		reqBody, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			return ""
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       ioutil.NopCloser(bytes.NewBufferString(resBody)),
+			Header:     http.Header{},
 		}
-
-		var msg slackMessage
-		if err := json.Unmarshal(reqBody, &msg); err != nil {
-			return `{"ok":false,"error":"invalid_form_data"}`
-		}
-
-		if msg.Channel == "" {
-			return `{"ok":false,"error":"channel_not_found"}`
-		}
-
-		return `{"ok":true}`
-	}()
-
-	if resBody == "" {
-		return &http.Response{StatusCode: http.StatusInternalServerError}
-	}
-
-	return &http.Response{
-		StatusCode: http.StatusOK,
-		Body:       ioutil.NopCloser(bytes.NewBufferString(resBody)),
-		Header:     http.Header{},
-	}
-})
+	})
+}
 
 func TestSlackNotifier(t *testing.T) {
 	result := &bqloader.Result{
@@ -107,14 +109,15 @@ func TestSlackNotifier(t *testing.T) {
 		},
 	}
 
+	slackClient := newSlackClient()
+
 	for name, c := range cases {
+		c.notifier.HTTPClient = slackClient
+
 		t.Run(name, func(t *testing.T) {
-
-			c.notifier.HTTPClient = slackClient
-
 			err := c.notifier.Notify(context.Background(), c.result)
 			if c.expectedHasError && err == nil {
-				t.Errorf("expected error but no error occured")
+				t.Errorf("expected error but no error occurred")
 			}
 			if !c.expectedHasError && err != nil {
 				t.Errorf("unexpected error: %s", err)
