@@ -56,6 +56,7 @@ For simple transforming and loading CSV, import the package `go.nownabe.dev/bqlo
   		Pattern:         regexp.MustCompile("^mybank/"),  // Files matching this pattern are processed with this handler.
   		Encoding:        japanese.ShiftJIS,               // Encoding field specifies the encoding of input files.
   		Parser:          bqloader.CSVParser,
+  		Notifier:        &bqloader.SlackNotifier{Token: os.Getenv("SLACK_TOKEN"), Channel: "#mychannel"},
   		Projector:       projector,
   		SkipLeadingRows: 1,
 

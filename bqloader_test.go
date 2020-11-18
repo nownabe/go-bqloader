@@ -24,11 +24,13 @@ func TestLoader(t *testing.T) {
 
 	te := newTestExtractor()
 	tl := newTestLoader()
+	tn := newTestNotifier()
 
 	handler := &Handler{
 		Name:      "test-handler",
 		Pattern:   regexp.MustCompile("^test/"),
 		Parser:    CSVParser(),
+		Notifier:  tn,
 		Projector: projector,
 		extractor: te,
 		loader:    tl,
@@ -92,5 +94,15 @@ func newTestLoader() loader {
 
 func (l *testLoader) load(ctx context.Context, rs [][]string) error {
 	l.result = rs
+	return nil
+}
+
+type testNotifier struct{}
+
+func newTestNotifier() Notifier {
+	return &testNotifier{}
+}
+
+func (n *testNotifier) Notify(ctx context.Context, r *Result) error {
 	return nil
 }

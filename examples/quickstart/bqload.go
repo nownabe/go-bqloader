@@ -40,10 +40,14 @@ func newHandler() *bqloader.Handler {
 	}
 
 	return &bqloader.Handler{
-		Name:            "quickstart",
-		Pattern:         regexp.MustCompile("^example_bank/"),
-		Encoding:        japanese.ShiftJIS,
-		Parser:          bqloader.CSVParser(),
+		Name:     "quickstart",
+		Pattern:  regexp.MustCompile("^example_bank/"),
+		Encoding: japanese.ShiftJIS,
+		Parser:   bqloader.CSVParser(),
+		Notifier: &bqloader.SlackNotifier{
+			Token:   os.Getenv("SLACK_TOKEN"),
+			Channel: os.Getenv("SLACK_CHANNEL"),
+		},
 		Projector:       projector,
 		SkipLeadingRows: 1,
 

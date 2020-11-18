@@ -95,12 +95,28 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 	logger.Info().Msg("bqloader started to handle an event")
 	defer logger.Info().Msg("bqloader finished to handle an envent")
 
+	// TODO: Make this parallel.
 	for _, h := range l.handlers {
 		if h.match(e.Name) {
 			l := h.logger(logger)
-			if err := h.handle(l.WithContext(ctx), e); err != nil {
+			ctx := l.WithContext(ctx)
+
+			err := h.handle(ctx, e)
+			if err != nil {
 				err = xerrors.Errorf("failed to handle: %w", err)
 				l.Err(err).Msg(err.Error())
+			}
+
+			if h.Notifier != nil {
+				res := &Result{Event: e, Handler: h, Error: err}
+				if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
+					nerr = xerrors.Errorf("failed to notify: %w", nerr)
+					l.Err(nerr).Msg(nerr.Error())
+				}
+			}
+
+			// TODO: Avoid earlier return
+			if err != nil {
 				return err
 			}
 		}
