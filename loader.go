@@ -31,7 +31,6 @@ func newDefaultLoader(ctx context.Context, project, dataset, table string) (load
 }
 
 func (l *defaultLoader) load(ctx context.Context, records [][]string) error {
-	// TODO: Make output format more efficient. e.g. gzip.
 	buf := &bytes.Buffer{}
 	if err := csv.NewWriter(buf).WriteAll(records); err != nil {
 		return xerrors.Errorf("failed to write csv into buffer: %w", err)
