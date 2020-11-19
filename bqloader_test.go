@@ -74,6 +74,41 @@ func TestLoader(t *testing.T) {
 	}
 }
 
+func TestBQLoader_error(t *testing.T) {
+	projector := func(_ int, r []string) ([]string, error) {
+		return nil, fmt.Errorf("projector error")
+	}
+
+	te := newTestExtractor()
+	tl := newTestLoader()
+	tn := newTestNotifier()
+
+	handler := &Handler{
+		Name:      "test-handler",
+		Pattern:   regexp.MustCompile("^test/"),
+		Parser:    CSVParser(),
+		Notifier:  tn,
+		Projector: projector,
+		extractor: te,
+		loader:    tl,
+	}
+
+	ctx := context.Background()
+
+	loader, err := New(WithPrettyLogging(), WithLogLevel("debug"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	loader.MustAddHandler(ctx, handler)
+
+	src := bytes.NewBufferString("2020/11/21,foo,123")
+	e := Event{Name: "test/name", Bucket: "bucket", source: src}
+
+	if err := loader.Handle(ctx, e); err == nil {
+		t.Error("expected error but no error occurred")
+	}
+}
+
 type testExtractor struct{}
 
 func newTestExtractor() extractor {
