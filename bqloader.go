@@ -125,7 +125,7 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 	}
 
 	if err := g.Wait(); err != nil {
-		err = xerrors.Errorf("imcompleted with error: %w")
+		err = xerrors.Errorf("imcompleted with error: %w", err)
 		logger.Err(err).Msg(err.Error())
 		return err
 	}
