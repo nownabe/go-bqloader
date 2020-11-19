@@ -14,8 +14,6 @@ type Event struct {
 	Bucket      string    `json:"bucket"`
 	TimeCreated time.Time `json:"timeCreated"`
 
-	// TODO: Add functions.Metadata
-
 	// for test
 	source io.Reader
 }
