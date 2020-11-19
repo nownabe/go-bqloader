@@ -23,7 +23,6 @@ func (e *Event) FullPath() string {
 	return fmt.Sprintf("gs://%s/%s", e.Bucket, e.Name)
 }
 
-// TODO: Add metadata context here.
 func (e *Event) logger(l *zerolog.Logger) *zerolog.Logger {
 	d := zerolog.Dict().
 		Str("name", e.Name).

@@ -8,6 +8,7 @@ import (
 
 	"cloud.google.com/go/functions/metadata"
 	"github.com/rs/zerolog"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/xerrors"
 )
 
@@ -95,31 +96,38 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 	logger.Info().Msg("bqloader started to handle an event")
 	defer logger.Info().Msg("bqloader finished to handle an envent")
 
-	// TODO: Make this parallel.
+	g, ctx := errgroup.WithContext(ctx)
+
 	for _, h := range l.handlers {
 		if h.match(e.Name) {
-			l := h.logger(logger)
-			ctx := l.WithContext(ctx)
+			h := h
+			g.Go(func() error {
+				l := h.logger(logger)
+				ctx := l.WithContext(ctx)
 
-			err := h.handle(ctx, e)
-			if err != nil {
-				err = xerrors.Errorf("failed to handle: %w", err)
-				l.Err(err).Msg(err.Error())
-			}
-
-			if h.Notifier != nil {
-				res := &Result{Event: e, Handler: h, Error: err}
-				if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
-					nerr = xerrors.Errorf("failed to notify: %w", nerr)
-					l.Err(nerr).Msg(nerr.Error())
+				err := h.handle(ctx, e)
+				if err != nil {
+					err = xerrors.Errorf("failed to handle: %w", err)
+					l.Err(err).Msg(err.Error())
 				}
-			}
 
-			// TODO: Avoid earlier return
-			if err != nil {
+				if h.Notifier != nil {
+					res := &Result{Event: e, Handler: h, Error: err}
+					if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
+						nerr = xerrors.Errorf("failed to notify: %w", nerr)
+						l.Err(nerr).Msg(nerr.Error())
+					}
+				}
+
 				return err
-			}
+			})
 		}
+	}
+
+	if err := g.Wait(); err != nil {
+		err = xerrors.Errorf("imcompleted with error: %w", err)
+		logger.Err(err).Msg(err.Error())
+		return err
 	}
 
 	return nil
