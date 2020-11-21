@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/functions/metadata"
 	"github.com/rs/zerolog"
@@ -91,10 +92,14 @@ func (l *bqloader) MustAddHandler(ctx context.Context, h *Handler) {
 }
 
 func (l *bqloader) Handle(ctx context.Context, e Event) error {
+	started := time.Now()
 	logger := contextualLogger(ctx, e, l.logger)
 
 	logger.Info().Msg("bqloader started to handle an event")
-	defer logger.Info().Msg("bqloader finished to handle an envent")
+	defer func() {
+		elapsed := time.Now().Sub(started)
+		logger.Info().Msgf("bqloader finished to handle an envent. elapsed = %v", elapsed)
+	}()
 
 	g, ctx := errgroup.WithContext(ctx)
 

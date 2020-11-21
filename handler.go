@@ -3,6 +3,7 @@ package bqloader
 import (
 	"context"
 	"regexp"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -44,9 +45,14 @@ func (h *Handler) match(name string) bool {
 }
 
 func (h *Handler) handle(ctx context.Context, e Event) error {
+	started := time.Now()
 	l := log.Ctx(ctx)
+
 	l.Info().Msgf("handler %s started to handle an event", h.Name)
-	defer l.Info().Msgf("handler %s finished to handle an event", h.Name)
+	defer func() {
+		elapsed := time.Now().Sub(started)
+		l.Info().Msgf("handler %s finished to handle an event. elapsed = %v", h.Name, elapsed)
+	}()
 
 	r, closer, err := h.extractor.extract(ctx, e)
 	if err != nil {
