@@ -63,7 +63,7 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 		ex, err := newDefaultExtractor(ctx, h.Project)
 		if err != nil {
 			err = xerrors.Errorf("failed to build default extractor for project '%s': %w", h.Project, err)
-			h.logger(l.logger).Err(err).Msg(err.Error())
+			h.logger(ctx, l.logger).Err(err).Msg(err.Error())
 			return err
 		}
 		h.extractor = ex
@@ -74,7 +74,7 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 		if err != nil {
 			err = xerrors.Errorf("failed to build default loader for table '%s.%s.%s': %w",
 				h.Project, h.Dataset, h.Table, err)
-			h.logger(l.logger).Err(err).Msg(err.Error())
+			h.logger(ctx, l.logger).Err(err).Msg(err.Error())
 			return err
 		}
 		h.loader = loader
@@ -111,7 +111,6 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 		if h.match(e.Name) {
 			h := h
 			g.Go(func() error {
-
 				return h.handle(ctx, e)
 			})
 		}

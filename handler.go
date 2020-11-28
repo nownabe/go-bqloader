@@ -45,15 +45,19 @@ func (h *Handler) match(name string) bool {
 }
 
 func (h *Handler) handle(ctx context.Context, e Event) error {
-	started := time.Now()
+	ctx = withHandlerStartedTime(ctx)
 	l := log.Ctx(ctx)
-	l = h.logger(l)
+	l = h.logger(ctx, l)
 	ctx = l.WithContext(ctx)
 
 	l.Info().Msgf("handler %s started to handle an event", h.Name)
 	defer func() {
-		elapsed := time.Since(started)
-		l.Info().Msgf("handler %s finished to handle an event. elapsed = %v", h.Name, elapsed)
+		now := time.Now()
+		e := l.Info().Time("handlerFinished", now)
+		if t, ok := handlerStartedTimeFrom(ctx); ok {
+			e.TimeDiff("handlerElapsed", now, t)
+		}
+		e.Msgf("handler %s finished to handle an event", h.Name)
 	}()
 
 	err := h.process(ctx, e)
@@ -109,7 +113,13 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 	return nil
 }
 
-func (h *Handler) logger(l *zerolog.Logger) *zerolog.Logger {
+func (h *Handler) logger(ctx context.Context, l *zerolog.Logger) *zerolog.Logger {
+	lctx := l.With()
+
+	if t, ok := handlerStartedTimeFrom(ctx); ok {
+		lctx = lctx.Time("handlerStarted", t)
+	}
+
 	d := zerolog.Dict().
 		Str("name", h.Name).
 		Str("pattern", h.Pattern.String()).
@@ -117,6 +127,7 @@ func (h *Handler) logger(l *zerolog.Logger) *zerolog.Logger {
 		Str("project", h.Project).
 		Str("dataset", h.Dataset).
 		Str("table", h.Table)
-	logger := l.With().Dict("handler", d).Logger()
+	logger := lctx.Dict("handler", d).Logger()
+
 	return &logger
 }
