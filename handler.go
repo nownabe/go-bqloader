@@ -47,6 +47,8 @@ func (h *Handler) match(name string) bool {
 func (h *Handler) handle(ctx context.Context, e Event) error {
 	started := time.Now()
 	l := log.Ctx(ctx)
+	l = h.logger(l)
+	ctx = l.WithContext(ctx)
 
 	l.Info().Msgf("handler %s started to handle an event", h.Name)
 	defer func() {
@@ -54,6 +56,24 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 		l.Info().Msgf("handler %s finished to handle an event. elapsed = %v", h.Name, elapsed)
 	}()
 
+	err := h.process(ctx, e)
+	if err != nil {
+		err = xerrors.Errorf("failed to handle: %w", err)
+		l.Err(err).Msg(err.Error())
+	}
+
+	if h.Notifier != nil {
+		res := &Result{Event: e, Handler: h, Error: err}
+		if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
+			nerr = xerrors.Errorf("failed to notify: %w", nerr)
+			l.Err(nerr).Msg(nerr.Error())
+		}
+	}
+
+	return err
+}
+
+func (h *Handler) process(ctx context.Context, e Event) error {
 	r, closer, err := h.extractor.extract(ctx, e)
 	if err != nil {
 		return xerrors.Errorf("failed to extract: %w", err)

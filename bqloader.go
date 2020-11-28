@@ -105,30 +105,14 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 		e.Msgf("bqloader finished to handle an envent")
 	}()
 
-	g, ctx := errgroup.WithContext(ctx)
+	g, ctx := errgroup.WithContext(logger.WithContext(ctx))
 
 	for _, h := range l.handlers {
 		if h.match(e.Name) {
 			h := h
 			g.Go(func() error {
-				l := h.logger(logger)
-				ctx := l.WithContext(ctx)
 
-				err := h.handle(ctx, e)
-				if err != nil {
-					err = xerrors.Errorf("failed to handle: %w", err)
-					l.Err(err).Msg(err.Error())
-				}
-
-				if h.Notifier != nil {
-					res := &Result{Event: e, Handler: h, Error: err}
-					if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
-						nerr = xerrors.Errorf("failed to notify: %w", nerr)
-						l.Err(nerr).Msg(nerr.Error())
-					}
-				}
-
-				return err
+				return h.handle(ctx, e)
 			})
 		}
 	}
