@@ -92,13 +92,17 @@ func (l *bqloader) MustAddHandler(ctx context.Context, h *Handler) {
 }
 
 func (l *bqloader) Handle(ctx context.Context, e Event) error {
-	started := time.Now()
+	ctx = withStartedTime(ctx)
 	logger := contextualLogger(ctx, e, l.logger)
 
 	logger.Info().Msg("bqloader started to handle an event")
 	defer func() {
-		elapsed := time.Since(started)
-		logger.Info().Msgf("bqloader finished to handle an envent. elapsed = %v", elapsed)
+		now := time.Now()
+		e := logger.Info().Time("finished", now)
+		if t, ok := startedTimeFrom(ctx); ok {
+			e.TimeDiff("elapsed", now, t)
+		}
+		e.Msgf("bqloader finished to handle an envent")
 	}()
 
 	g, ctx := errgroup.WithContext(ctx)
@@ -151,7 +155,12 @@ func (h severityHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
 }
 
 func contextualLogger(ctx context.Context, e Event, l *zerolog.Logger) *zerolog.Logger {
-	logger := e.logger(l)
+	lctx := e.logger(l).With()
+
+	t, ok := startedTimeFrom(ctx)
+	if ok {
+		lctx = lctx.Time("started", t)
+	}
 
 	md, err := metadata.FromContext(ctx)
 	if err == nil {
@@ -167,11 +176,11 @@ func contextualLogger(ctx context.Context, e Event, l *zerolog.Logger) *zerolog.
 			Str("eventType", md.EventType).
 			Dict("resource", rd)
 
-		ml := logger.With().Dict("metadata", d).Logger()
-		logger = &ml
+		lctx = lctx.Dict("metadata", d)
 	} else {
-		logger.Warn().Msg(err.Error())
+		l.Warn().Msg(err.Error())
 	}
 
-	return logger
+	rl := lctx.Logger()
+	return &rl
 }
