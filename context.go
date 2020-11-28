@@ -18,6 +18,7 @@ func withStartedTime(ctx context.Context) context.Context {
 
 func startedTimeFrom(ctx context.Context) (time.Time, bool) {
 	t, ok := ctx.Value(startedTimeKey).(time.Time)
+
 	return t, ok
 }
 
@@ -27,5 +28,6 @@ func withHandlerStartedTime(ctx context.Context) context.Context {
 
 func handlerStartedTimeFrom(ctx context.Context) (time.Time, bool) {
 	t, ok := ctx.Value(handlerStartedTimeKey).(time.Time)
+
 	return t, ok
 }
