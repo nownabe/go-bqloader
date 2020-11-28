@@ -50,7 +50,7 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 
 	l.Info().Msgf("handler %s started to handle an event", h.Name)
 	defer func() {
-		elapsed := time.Now().Sub(started)
+		elapsed := time.Since(started)
 		l.Info().Msgf("handler %s finished to handle an event. elapsed = %v", h.Name, elapsed)
 	}()
 

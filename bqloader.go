@@ -97,7 +97,7 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 
 	logger.Info().Msg("bqloader started to handle an event")
 	defer func() {
-		elapsed := time.Now().Sub(started)
+		elapsed := time.Since(started)
 		logger.Info().Msgf("bqloader finished to handle an envent. elapsed = %v", elapsed)
 	}()
 
