@@ -3,6 +3,7 @@ package bqloader
 import (
 	"context"
 	"regexp"
+	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -102,7 +103,8 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 	}
 	source = source[h.SkipLeadingRows:]
 
-	records := make([][]string, len(source))
+	records := [][]string{}
+	mu := sync.Mutex{}
 	eg := errgroup.Group{}
 	numBatches := h.calcBatches(len(source))
 
@@ -112,6 +114,8 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 
 		eg.Go(func() error {
 			defer func() { <-h.semaphore }()
+
+			batchRecords := [][]string{}
 
 			startLine := h.BatchSize * i
 			endLine := h.BatchSize * (i + 1)
@@ -125,8 +129,15 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 					return xerrors.Errorf("failed to project row %d (line %d): %w", j, uint(j)+h.SkipLeadingRows, err)
 				}
 
-				records[j] = record
+				if record != nil {
+					batchRecords = append(batchRecords, record)
+				}
 			}
+
+			mu.Lock()
+			defer mu.Unlock()
+
+			records = append(records, batchRecords...)
 
 			return nil
 		})
@@ -152,11 +163,15 @@ func (h *Handler) logger(ctx context.Context, l *zerolog.Logger) *zerolog.Logger
 
 	d := zerolog.Dict().
 		Str("name", h.Name).
-		Str("pattern", h.Pattern.String()).
 		Uint("skipLeadingRows", h.SkipLeadingRows).
 		Str("project", h.Project).
 		Str("dataset", h.Dataset).
 		Str("table", h.Table)
+
+	if h.Pattern != nil {
+		d = d.Str("pattern", h.Pattern.String())
+	}
+
 	logger := lctx.Dict("handler", d).Logger()
 
 	return &logger
