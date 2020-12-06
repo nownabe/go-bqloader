@@ -48,10 +48,10 @@ type Handler struct {
 }
 
 // Projector transforms source records into records for destination.
-type Projector func(int, []string, *sync.Map) ([]string, error)
+type Projector func(context.Context, []string) ([]string, error)
 
 // Preprocessor preprocesses event and store data into a map.
-type Preprocessor func(context.Context, Event, *sync.Map) error
+type Preprocessor func(context.Context, Event) (context.Context, error)
 
 func (h *Handler) match(name string) bool {
 	return h.Pattern != nil && h.Pattern.MatchString(name)
@@ -91,9 +91,8 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 }
 
 func (h *Handler) process(ctx context.Context, e Event) error {
-	metadata := &sync.Map{}
-
-	if err := h.preprocess(ctx, e, metadata); err != nil {
+	ctx, err := h.preprocess(ctx, e)
+	if err != nil {
 		return xerrors.Errorf("failed to preprocess: %w", err)
 	}
 
@@ -112,7 +111,7 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 		return xerrors.Errorf("failed to parse: %w", err)
 	}
 
-	records, err := h.project(ctx, source[h.SkipLeadingRows:], metadata)
+	records, err := h.project(ctx, source[h.SkipLeadingRows:])
 	if err != nil {
 		return xerrors.Errorf("failed to project: %w", err)
 	}
@@ -124,15 +123,15 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 	return nil
 }
 
-func (h *Handler) preprocess(ctx context.Context, e Event, md *sync.Map) error {
+func (h *Handler) preprocess(ctx context.Context, e Event) (context.Context, error) {
 	if h.Preprocessor == nil {
-		return nil
+		return ctx, nil
 	}
 
-	return h.Preprocessor(ctx, e, md)
+	return h.Preprocessor(ctx, e)
 }
 
-func (h *Handler) project(ctx context.Context, source [][]string, metadata *sync.Map) ([][]string, error) {
+func (h *Handler) project(ctx context.Context, source [][]string) ([][]string, error) {
 	records := [][]string{}
 	mu := sync.Mutex{}
 	eg := errgroup.Group{}
@@ -153,7 +152,7 @@ func (h *Handler) project(ctx context.Context, source [][]string, metadata *sync
 			batchRecords := [][]string{}
 
 			for j := startLine; j < endLine; j++ {
-				record, err := h.Projector(j, source[j], metadata)
+				record, err := h.Projector(ctx, source[j])
 				if err != nil {
 					return xerrors.Errorf("failed to project row %d (line %d): %w", j, uint(j)+h.SkipLeadingRows, err)
 				}

@@ -5,12 +5,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
 	"testing"
 )
 
 func Test_Handler_WithSkipping(t *testing.T) {
-	projector := func(_ int, r []string, _ *sync.Map) ([]string, error) {
+	projector := func(_ context.Context, r []string) ([]string, error) {
 		if r[0] == "" {
 			return nil, nil
 		}
@@ -82,15 +81,10 @@ func Test_Handler_WithSkipping(t *testing.T) {
 }
 
 func Test_Handler_WithPreprocessor(t *testing.T) {
-	projector := func(_ int, r []string, md *sync.Map) ([]string, error) {
-		iPrefix, ok := md.Load("prefix")
+	projector := func(ctx context.Context, r []string) ([]string, error) {
+		prefix, ok := ctx.Value("prefix").(string)
 		if !ok {
-			return nil, fmt.Errorf("prefix not found")
-		}
-
-		prefix, ok := iPrefix.(string)
-		if !ok {
-			return nil, fmt.Errorf("prefix is not string")
+			return nil, fmt.Errorf("prefix is not found")
 		}
 
 		row := make([]string, 4)
@@ -102,10 +96,9 @@ func Test_Handler_WithPreprocessor(t *testing.T) {
 		return row, nil
 	}
 
-	preprocessor := func(_ context.Context, e Event, md *sync.Map) error {
+	preprocessor := func(ctx context.Context, e Event) (context.Context, error) {
 		prefix := strings.Split(e.Name, "/")[0]
-		md.Store("prefix", prefix)
-		return nil
+		return context.WithValue(ctx, "prefix", prefix), nil
 	}
 
 	src := bytes.NewBufferString(`123,456,789`)
