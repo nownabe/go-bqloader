@@ -111,8 +111,28 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 	if err != nil {
 		return xerrors.Errorf("failed to parse: %w", err)
 	}
-	source = source[h.SkipLeadingRows:]
 
+	records, err := h.project(ctx, source[h.SkipLeadingRows:], metadata)
+	if err != nil {
+		return xerrors.Errorf("failed to project: %w", err)
+	}
+
+	if err := h.loader.load(ctx, records); err != nil {
+		return xerrors.Errorf("failed to load: %w", err)
+	}
+
+	return nil
+}
+
+func (h *Handler) preprocess(ctx context.Context, e Event, md *sync.Map) error {
+	if h.Preprocessor == nil {
+		return nil
+	}
+
+	return h.Preprocessor(ctx, e, md)
+}
+
+func (h *Handler) project(ctx context.Context, source [][]string, metadata *sync.Map) ([][]string, error) {
 	records := [][]string{}
 	mu := sync.Mutex{}
 	eg := errgroup.Group{}
@@ -153,22 +173,10 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 	}
 
 	if err := eg.Wait(); err != nil {
-		return xerrors.Errorf("failed to project: %w", err)
+		return nil, xerrors.Errorf("failed to wait errgroup: %w", err)
 	}
 
-	if err := h.loader.load(ctx, records); err != nil {
-		return xerrors.Errorf("failed to load: %w", err)
-	}
-
-	return nil
-}
-
-func (h *Handler) preprocess(ctx context.Context, e Event, md *sync.Map) error {
-	if h.Preprocessor == nil {
-		return nil
-	}
-
-	return h.Preprocessor(ctx, e, md)
+	return records, nil
 }
 
 func (h *Handler) logger(ctx context.Context, l *zerolog.Logger) *zerolog.Logger {
