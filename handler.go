@@ -28,6 +28,7 @@ type Handler struct {
 	SkipLeadingRows uint
 
 	// BatchSize specifies how much records are processed in a groutine.
+	// Default is 10000.
 	BatchSize int
 
 	// Project specifies GCP project name of destination BigQuery table.
