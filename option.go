@@ -17,6 +17,7 @@ func (f optionFunc) apply(l *bqloader) error {
 func WithPrettyLogging() Option {
 	return optionFunc(func(l *bqloader) error {
 		l.prettyLogging = true
+
 		return nil
 	})
 }
@@ -30,6 +31,17 @@ func WithLogLevel(l string) Option {
 			return err
 		}
 		bq.logLevel = l
+
+		return nil
+	})
+}
+
+// WithConcurrency configures the concurrency of projectors.
+// Before setting this, confirm GOMAXPROCS.
+func WithConcurrency(n int) Option {
+	return optionFunc(func(bq *bqloader) error {
+		bq.concurrency = n
+
 		return nil
 	})
 }

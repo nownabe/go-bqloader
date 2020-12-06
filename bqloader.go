@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 
 	"cloud.google.com/go/functions/metadata"
 	"github.com/rs/zerolog"
@@ -26,6 +27,7 @@ func New(opts ...Option) (BQLoader, error) {
 		mu:            sync.RWMutex{},
 		prettyLogging: false,
 		logLevel:      zerolog.ErrorLevel,
+		concurrency:   1,
 	}
 
 	for _, o := range opts {
@@ -43,6 +45,8 @@ func New(opts ...Option) (BQLoader, error) {
 	l := zerolog.New(w).Level(bq.logLevel).With().Timestamp().Logger().Hook(severityHook{})
 	bq.logger = &l
 
+	bq.semaphore = make(chan struct{}, bq.concurrency)
+
 	return bq, nil
 }
 
@@ -52,6 +56,8 @@ type bqloader struct {
 	logger        *zerolog.Logger
 	prettyLogging bool
 	logLevel      zerolog.Level
+	concurrency   int
+	semaphore     chan struct{}
 }
 
 func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
@@ -62,7 +68,7 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 		ex, err := newDefaultExtractor(ctx, h.Project)
 		if err != nil {
 			err = xerrors.Errorf("failed to build default extractor for project '%s': %w", h.Project, err)
-			h.logger(l.logger).Err(err).Msg(err.Error())
+			h.logger(ctx, l.logger).Err(err).Msg(err.Error())
 			return err
 		}
 		h.extractor = ex
@@ -73,10 +79,16 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 		if err != nil {
 			err = xerrors.Errorf("failed to build default loader for table '%s.%s.%s': %w",
 				h.Project, h.Dataset, h.Table, err)
-			h.logger(l.logger).Err(err).Msg(err.Error())
+			h.logger(ctx, l.logger).Err(err).Msg(err.Error())
 			return err
 		}
 		h.loader = loader
+	}
+
+	h.semaphore = l.semaphore
+
+	if h.BatchSize == 0 {
+		h.BatchSize = defaultBatchSize
 	}
 
 	l.handlers = append(l.handlers, h)
@@ -91,35 +103,26 @@ func (l *bqloader) MustAddHandler(ctx context.Context, h *Handler) {
 }
 
 func (l *bqloader) Handle(ctx context.Context, e Event) error {
+	ctx = withStartedTime(ctx)
 	logger := contextualLogger(ctx, e, l.logger)
 
 	logger.Info().Msg("bqloader started to handle an event")
-	defer logger.Info().Msg("bqloader finished to handle an envent")
+	defer func() {
+		now := time.Now()
+		e := logger.Info().Time("finished", now)
+		if t, ok := startedTimeFrom(ctx); ok {
+			e.TimeDiff("elapsed", now, t)
+		}
+		e.Msgf("bqloader finished to handle an envent")
+	}()
 
-	g, ctx := errgroup.WithContext(ctx)
+	g, ctx := errgroup.WithContext(logger.WithContext(ctx))
 
 	for _, h := range l.handlers {
 		if h.match(e.Name) {
 			h := h
 			g.Go(func() error {
-				l := h.logger(logger)
-				ctx := l.WithContext(ctx)
-
-				err := h.handle(ctx, e)
-				if err != nil {
-					err = xerrors.Errorf("failed to handle: %w", err)
-					l.Err(err).Msg(err.Error())
-				}
-
-				if h.Notifier != nil {
-					res := &Result{Event: e, Handler: h, Error: err}
-					if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
-						nerr = xerrors.Errorf("failed to notify: %w", nerr)
-						l.Err(nerr).Msg(nerr.Error())
-					}
-				}
-
-				return err
+				return h.handle(ctx, e)
 			})
 		}
 	}
@@ -146,7 +149,12 @@ func (h severityHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
 }
 
 func contextualLogger(ctx context.Context, e Event, l *zerolog.Logger) *zerolog.Logger {
-	logger := e.logger(l)
+	lctx := e.logger(l).With()
+
+	t, ok := startedTimeFrom(ctx)
+	if ok {
+		lctx = lctx.Time("started", t)
+	}
 
 	md, err := metadata.FromContext(ctx)
 	if err == nil {
@@ -162,11 +170,11 @@ func contextualLogger(ctx context.Context, e Event, l *zerolog.Logger) *zerolog.
 			Str("eventType", md.EventType).
 			Dict("resource", rd)
 
-		ml := logger.With().Dict("metadata", d).Logger()
-		logger = &ml
+		lctx = lctx.Dict("metadata", d)
 	} else {
-		logger.Warn().Msg(err.Error())
+		l.Warn().Msg(err.Error())
 	}
 
-	return logger
+	rl := lctx.Logger()
+	return &rl
 }

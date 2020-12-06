@@ -3,13 +3,17 @@ package bqloader
 import (
 	"context"
 	"regexp"
+	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
 	"golang.org/x/xerrors"
 )
+
+const defaultBatchSize = 10000
 
 // Handler defines how to handle events which match specified pattern.
 type Handler struct {
@@ -23,6 +27,10 @@ type Handler struct {
 	Projector       Projector
 	SkipLeadingRows uint
 
+	// BatchSize specifies how much records are processed in a groutine.
+	// Default is 10000.
+	BatchSize int
+
 	// Project specifies GCP project name of destination BigQuery table.
 	Project string
 
@@ -34,6 +42,7 @@ type Handler struct {
 
 	extractor extractor
 	loader    loader
+	semaphore chan struct{}
 }
 
 // Projector transforms source records into records for destination.
@@ -44,10 +53,39 @@ func (h *Handler) match(name string) bool {
 }
 
 func (h *Handler) handle(ctx context.Context, e Event) error {
+	ctx = withHandlerStartedTime(ctx)
 	l := log.Ctx(ctx)
-	l.Info().Msgf("handler %s started to handle an event", h.Name)
-	defer l.Info().Msgf("handler %s finished to handle an event", h.Name)
+	l = h.logger(ctx, l)
+	ctx = l.WithContext(ctx)
 
+	l.Info().Msgf("handler %s started to handle an event", h.Name)
+	defer func() {
+		now := time.Now()
+		e := l.Info().Time("handlerFinished", now)
+		if t, ok := handlerStartedTimeFrom(ctx); ok {
+			e.TimeDiff("handlerElapsed", now, t)
+		}
+		e.Msgf("handler %s finished to handle an event", h.Name)
+	}()
+
+	err := h.process(ctx, e)
+	if err != nil {
+		err = xerrors.Errorf("failed to handle: %w", err)
+		l.Err(err).Msg(err.Error())
+	}
+
+	if h.Notifier != nil {
+		res := &Result{Event: e, Handler: h, Error: err}
+		if nerr := h.Notifier.Notify(ctx, res); nerr != nil {
+			nerr = xerrors.Errorf("failed to notify: %w", nerr)
+			l.Err(nerr).Msg(nerr.Error())
+		}
+	}
+
+	return err
+}
+
+func (h *Handler) process(ctx context.Context, e Event) error {
 	r, closer, err := h.extractor.extract(ctx, e)
 	if err != nil {
 		return xerrors.Errorf("failed to extract: %w", err)
@@ -65,15 +103,37 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 	source = source[h.SkipLeadingRows:]
 
 	records := make([][]string, len(source))
+	eg := errgroup.Group{}
+	numBatches := h.calcBatches(len(source))
 
-	// TODO: Make this loop parallel.
-	for i, r := range source {
-		record, err := h.Projector(i, r)
-		if err != nil {
-			return xerrors.Errorf("failed to project row %d (line %d): %w", i, uint(i)+h.SkipLeadingRows, err)
-		}
+	for i := 0; i < numBatches; i++ {
+		i := i
+		h.semaphore <- struct{}{}
 
-		records[i] = record
+		eg.Go(func() error {
+			defer func() { <-h.semaphore }()
+
+			startLine := h.BatchSize * i
+			endLine := h.BatchSize * (i + 1)
+			if endLine > len(source) {
+				endLine = len(source)
+			}
+
+			for j := startLine; j < endLine; j++ {
+				record, err := h.Projector(j, source[j])
+				if err != nil {
+					return xerrors.Errorf("failed to project row %d (line %d): %w", j, uint(j)+h.SkipLeadingRows, err)
+				}
+
+				records[j] = record
+			}
+
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return xerrors.Errorf("failed to project: %w", err)
 	}
 
 	if err := h.loader.load(ctx, records); err != nil {
@@ -83,7 +143,13 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 	return nil
 }
 
-func (h *Handler) logger(l *zerolog.Logger) *zerolog.Logger {
+func (h *Handler) logger(ctx context.Context, l *zerolog.Logger) *zerolog.Logger {
+	lctx := l.With()
+
+	if t, ok := handlerStartedTimeFrom(ctx); ok {
+		lctx = lctx.Time("handlerStarted", t)
+	}
+
 	d := zerolog.Dict().
 		Str("name", h.Name).
 		Str("pattern", h.Pattern.String()).
@@ -91,6 +157,15 @@ func (h *Handler) logger(l *zerolog.Logger) *zerolog.Logger {
 		Str("project", h.Project).
 		Str("dataset", h.Dataset).
 		Str("table", h.Table)
-	logger := l.With().Dict("handler", d).Logger()
+	logger := lctx.Dict("handler", d).Logger()
+
 	return &logger
+}
+
+func (h *Handler) calcBatches(length int) int {
+	r := length / h.BatchSize
+	if length%h.BatchSize != 0 {
+		r++
+	}
+	return r
 }
