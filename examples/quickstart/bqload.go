@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -16,8 +17,11 @@ import (
 var loader bqloader.BQLoader
 
 func init() {
+	c := runtime.NumCPU()
+	runtime.GOMAXPROCS(c)
+
 	var err error
-	loader, err = bqloader.New(bqloader.WithLogLevel("debug"))
+	loader, err = bqloader.New(bqloader.WithLogLevel("debug"), bqloader.WithConcurrency(c))
 	if err != nil {
 		panic(err)
 	}
