@@ -1,0 +1,79 @@
+package bqloader
+
+import (
+	"bytes"
+	"context"
+	"testing"
+)
+
+func Test_Handler_WithSkipping(t *testing.T) {
+	projector := func(_ int, r []string) ([]string, error) {
+		if r[0] == "" {
+			return nil, nil
+		}
+
+		return r, nil
+	}
+
+	rawCSV := `123,456,789
+,foo bar,123
+234,567,890`
+	src := bytes.NewBufferString(rawCSV)
+
+	tl := newTestLoader()
+
+	handler := &Handler{
+		Name:      "test-handler",
+		Parser:    CSVParser(),
+		Projector: projector,
+		BatchSize: defaultBatchSize,
+		extractor: newTestExtractor(),
+		loader:    tl,
+		semaphore: make(chan struct{}, 1),
+	}
+
+	e := Event{Name: "test/name", Bucket: "bucket", source: src}
+
+	err := handler.handle(context.Background(), e)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	res := tl.(*testLoader)
+
+	if len(res.result) != 2 {
+		t.Fatalf("Size of result records should be 2, but %d", len(res.result))
+	}
+
+	if len(res.result[0]) != 3 {
+		t.Fatalf("Size of each record be 3, but %d", len(res.result[0]))
+	}
+
+	if res.result[0][0] != "123" {
+		t.Errorf(`results[0][0] should be "123", but "%s"`, res.result[0][0])
+	}
+
+	if res.result[0][1] != "456" {
+		t.Errorf(`results[0][1] should be "456", but "%s"`, res.result[0][1])
+	}
+
+	if res.result[0][2] != "789" {
+		t.Errorf(`results[0][2] should be "789", but "%s"`, res.result[0][2])
+	}
+
+	if len(res.result[1]) != 3 {
+		t.Fatalf("Size of each record be 3, but %d", len(res.result[1]))
+	}
+
+	if res.result[1][0] != "234" {
+		t.Errorf(`results[1][0] should be "234", but "%s"`, res.result[1][0])
+	}
+
+	if res.result[1][1] != "567" {
+		t.Errorf(`results[1][1] should be "567", but "%s"`, res.result[1][1])
+	}
+
+	if res.result[1][2] != "890" {
+		t.Errorf(`results[1][2] should be "890", but "%s"`, res.result[1][2])
+	}
+}
