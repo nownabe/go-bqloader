@@ -109,19 +109,18 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 	numBatches := h.calcBatches(len(source))
 
 	for i := 0; i < numBatches; i++ {
-		i := i
+		startLine := h.BatchSize * i
+		endLine := h.BatchSize * (i + 1)
+		if endLine > len(source) {
+			endLine = len(source)
+		}
+
 		h.semaphore <- struct{}{}
 
 		eg.Go(func() error {
 			defer func() { <-h.semaphore }()
 
 			batchRecords := [][]string{}
-
-			startLine := h.BatchSize * i
-			endLine := h.BatchSize * (i + 1)
-			if endLine > len(source) {
-				endLine = len(source)
-			}
 
 			for j := startLine; j < endLine; j++ {
 				record, err := h.Projector(j, source[j])
