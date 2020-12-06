@@ -53,7 +53,7 @@ func newHandler() *bqloader.Handler {
 	/*
 		Projectors transform each row.
 		This projector transforms date columns formatted as "2006/01/02" at the first column
-		into BigQuery date format like "2006-01-02".
+		into BigQuery date format "2006-01-02".
 	*/
 	projector := func(l int, r []string) ([]string, error) {
 		t, err := time.Parse("2006/01/02", r[0])
