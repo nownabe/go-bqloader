@@ -5,8 +5,8 @@ to load data from Cloud Storage into BigQuery.
 
 Getting started
 
-(See [Quickstart example](https://github.com/nownabe/go-bqloader/tree/main/examples/quickstart)
-to get a full instruction.)
+See Quickstart example to get a full instruction.
+https://github.com/nownabe/go-bqloader/tree/main/examples/quickstart
 
 For simple transforming and loading CSV, import the package `go.nownabe.dev/bqloader` and write your handler.
 
