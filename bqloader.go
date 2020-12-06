@@ -27,6 +27,7 @@ func New(opts ...Option) (BQLoader, error) {
 		mu:            sync.RWMutex{},
 		prettyLogging: false,
 		logLevel:      zerolog.ErrorLevel,
+		concurrency:   1,
 	}
 
 	for _, o := range opts {
@@ -44,6 +45,8 @@ func New(opts ...Option) (BQLoader, error) {
 	l := zerolog.New(w).Level(bq.logLevel).With().Timestamp().Logger().Hook(severityHook{})
 	bq.logger = &l
 
+	bq.semaphore = make(chan struct{}, bq.concurrency)
+
 	return bq, nil
 }
 
@@ -53,6 +56,8 @@ type bqloader struct {
 	logger        *zerolog.Logger
 	prettyLogging bool
 	logLevel      zerolog.Level
+	concurrency   int
+	semaphore     chan struct{}
 }
 
 func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
@@ -78,6 +83,12 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 			return err
 		}
 		h.loader = loader
+	}
+
+	h.semaphore = l.semaphore
+
+	if h.BatchSize == 0 {
+		h.BatchSize = defaultBatchSize
 	}
 
 	l.handlers = append(l.handlers, h)

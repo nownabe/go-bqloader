@@ -7,10 +7,13 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"
 	"golang.org/x/xerrors"
 )
+
+const defaultBatchSize = 10000
 
 // Handler defines how to handle events which match specified pattern.
 type Handler struct {
@@ -24,6 +27,9 @@ type Handler struct {
 	Projector       Projector
 	SkipLeadingRows uint
 
+	// BatchSize specifies how much records are processed in a groutine.
+	BatchSize int
+
 	// Project specifies GCP project name of destination BigQuery table.
 	Project string
 
@@ -35,6 +41,7 @@ type Handler struct {
 
 	extractor extractor
 	loader    loader
+	semaphore chan struct{}
 }
 
 // Projector transforms source records into records for destination.
@@ -95,15 +102,37 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 	source = source[h.SkipLeadingRows:]
 
 	records := make([][]string, len(source))
+	eg := errgroup.Group{}
+	numBatches := h.calcBatches(len(source))
 
-	// TODO: Make this loop parallel.
-	for i, r := range source {
-		record, err := h.Projector(i, r)
-		if err != nil {
-			return xerrors.Errorf("failed to project row %d (line %d): %w", i, uint(i)+h.SkipLeadingRows, err)
-		}
+	for i := 0; i < numBatches; i++ {
+		i := i
+		h.semaphore <- struct{}{}
 
-		records[i] = record
+		eg.Go(func() error {
+			defer func() { <-h.semaphore }()
+
+			startLine := h.BatchSize * i
+			endLine := h.BatchSize * (i + 1)
+			if endLine > len(source) {
+				endLine = len(source)
+			}
+
+			for j := startLine; j < endLine; j++ {
+				record, err := h.Projector(j, source[j])
+				if err != nil {
+					return xerrors.Errorf("failed to project row %d (line %d): %w", j, uint(j)+h.SkipLeadingRows, err)
+				}
+
+				records[j] = record
+			}
+
+			return nil
+		})
+	}
+
+	if err := eg.Wait(); err != nil {
+		return xerrors.Errorf("failed to project: %w", err)
 	}
 
 	if err := h.loader.load(ctx, records); err != nil {
@@ -130,4 +159,12 @@ func (h *Handler) logger(ctx context.Context, l *zerolog.Logger) *zerolog.Logger
 	logger := lctx.Dict("handler", d).Logger()
 
 	return &logger
+}
+
+func (h *Handler) calcBatches(length int) int {
+	r := length / h.BatchSize
+	if length%h.BatchSize != 0 {
+		r++
+	}
+	return r
 }

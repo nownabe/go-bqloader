@@ -33,3 +33,12 @@ func WithLogLevel(l string) Option {
 		return nil
 	})
 }
+
+// WithConcurrency configures the concurrency of projectors.
+// Before setting this, confirm GOMAXPROCS.
+func WithConcurrency(n int) Option {
+	return optionFunc(func(bq *bqloader) error {
+		bq.concurrency = n
+		return nil
+	})
+}
