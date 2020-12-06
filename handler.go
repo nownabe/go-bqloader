@@ -27,6 +27,7 @@ type Handler struct {
 	Notifier        Notifier
 	Projector       Projector
 	SkipLeadingRows uint
+	Preprocessor    Preprocessor
 
 	// BatchSize specifies how much records are processed in a groutine.
 	// Default is 10000.
@@ -47,7 +48,10 @@ type Handler struct {
 }
 
 // Projector transforms source records into records for destination.
-type Projector func(int, []string) ([]string, error)
+type Projector func(int, []string, *sync.Map) ([]string, error)
+
+// Preprocessor preprocesses event and store data into a map.
+type Preprocessor func(context.Context, Event, *sync.Map) error
 
 func (h *Handler) match(name string) bool {
 	return h.Pattern != nil && h.Pattern.MatchString(name)
@@ -87,6 +91,12 @@ func (h *Handler) handle(ctx context.Context, e Event) error {
 }
 
 func (h *Handler) process(ctx context.Context, e Event) error {
+	metadata := &sync.Map{}
+
+	if err := h.preprocess(ctx, e, metadata); err != nil {
+		return xerrors.Errorf("failed to preprocess: %w", err)
+	}
+
 	r, closer, err := h.extractor.extract(ctx, e)
 	if err != nil {
 		return xerrors.Errorf("failed to extract: %w", err)
@@ -123,7 +133,7 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 			batchRecords := [][]string{}
 
 			for j := startLine; j < endLine; j++ {
-				record, err := h.Projector(j, source[j])
+				record, err := h.Projector(j, source[j], metadata)
 				if err != nil {
 					return xerrors.Errorf("failed to project row %d (line %d): %w", j, uint(j)+h.SkipLeadingRows, err)
 				}
@@ -151,6 +161,14 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 	}
 
 	return nil
+}
+
+func (h *Handler) preprocess(ctx context.Context, e Event, md *sync.Map) error {
+	if h.Preprocessor == nil {
+		return nil
+	}
+
+	return h.Preprocessor(ctx, e, md)
 }
 
 func (h *Handler) logger(ctx context.Context, l *zerolog.Logger) *zerolog.Logger {

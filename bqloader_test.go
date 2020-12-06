@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"sync"
 	"testing"
 	"time"
 )
 
 func TestLoader(t *testing.T) {
-	projector := func(_ int, r []string) ([]string, error) {
+	projector := func(_ int, r []string, _ *sync.Map) ([]string, error) {
 		t, err := time.Parse("2006/01/02", r[0])
 		if err != nil {
 			return nil, fmt.Errorf("Failed to parse date: %v", err)
@@ -75,7 +76,7 @@ func TestLoader(t *testing.T) {
 }
 
 func TestBQLoader_error(t *testing.T) {
-	projector := func(_ int, r []string) ([]string, error) {
+	projector := func(_ int, r []string, _ *sync.Map) ([]string, error) {
 		return nil, fmt.Errorf("projector error")
 	}
 
