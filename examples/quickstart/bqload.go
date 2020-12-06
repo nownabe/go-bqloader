@@ -29,10 +29,10 @@ func init() {
 }
 
 func newHandler() *bqloader.Handler {
-	projector := func(l int, r []string) ([]string, error) {
+	projector := func(_ context.Context, r []string) ([]string, error) {
 		t, err := time.Parse("2006/01/02", r[0])
 		if err != nil {
-			return nil, xerrors.Errorf("Line %d column 0 cannot parse as a date: %w", l, err)
+			return nil, xerrors.Errorf("Column 0 cannot parse as a date: %w", err)
 		}
 
 		r[0] = t.Format("2006-01-02")
