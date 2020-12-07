@@ -1,0 +1,26 @@
+[
+  {
+    "name": "date",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "transaction date"
+  },
+  {
+    "name": "description",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "what this transaction is"
+  },
+  {
+    "name": "credits",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "credit amount (yen)"
+  },
+  {
+    "name": "payment_month",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "payment month"
+  }
+]
