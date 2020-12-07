@@ -10,66 +10,71 @@ https://github.com/nownabe/go-bqloader/tree/main/examples/quickstart
 
 For simple transforming and loading CSV, import the package `go.nownabe.dev/bqloader` and write your handler.
 
-  package myfunc
+	package myfunc
 
-  import (
-  	"context"
-  	"os"
-  	"regexp"
-  	"strings"
-  	"time"
+	import (
+		"context"
+		"os"
+		"regexp"
+		"runtime"
+		"strings"
+		"time"
 
-  	"golang.org/x/text/encoding/japanese"
-  	"golang.org/x/xerrors"
+		"golang.org/x/text/encoding/japanese"
+		"golang.org/x/xerrors"
 
-  	"go.nownabe.dev/bqloader"
-  )
+		"go.nownabe.dev/bqloader"
+	)
 
-  var loader bqloader.BQLoader
+	var loader bqloader.BQLoader
 
-  func init() {
-  	var err error
-  	loader, err = bqloader.New()
-  	if err != nil {
-  		panic(err)
-  	}
-  	loader.MustAddHandler(context.Background(), newHandler())
-  }
+	func init() {
+		var err error
+		loader, err = bqloader.New()
+		if err != nil {
+			panic(err)
+		}
+		loader.MustAddHandler(context.Background(), newHandler())
+	}
 
-  func newHandler() *bqloader.Handler {
-  	//	Projectors transform each row.
-  	//	This projector transforms date columns formatted as "2006/01/02" at the first column
-  	//	into BigQuery date format "2006-01-02".
-  	projector := func(l int, r []string) ([]string, error) {
-  		t, err := time.Parse("2006/01/02", r[0])
-  		if err != nil {
-  			return nil, xerrors.Errorf("Line %d column 0 cannot parse as a date: %w", l, err)
-  		}
+	func newHandler() *bqloader.Handler {
+		// This projector converts date fields formatted as "2006/01/02"
+		// at the first column into strings like "2006-01-02" that satisfies
+		// BigQuery date type.
+		projector := func(_ context.Context, r []string) ([]string, error) {
+			t, err := time.Parse("2006/01/02", r[0])
+			if err != nil {
+				return nil, xerrors.Errorf("Column 0 cannot parse as a date: %w", err)
+			}
 
-  		r[0] = t.Format("2006-01-02")
+			r[0] = t.Format("2006-01-02")
 
-  		return r, nil
-  	}
+			return r, nil
+		}
 
-  	return &bqloader.Handler{
-  		Name:            "mybank",                        // Handler name used in logging.
-  		Pattern:         regexp.MustCompile("^mybank/"),  // Files matching this pattern are processed with this handler.
-  		Encoding:        japanese.ShiftJIS,               // Encoding field specifies the encoding of input files.
-  		Parser:          bqloader.CSVParser,
-  		Notifier:        &bqloader.SlackNotifier{Token: os.Getenv("SLACK_TOKEN"), Channel: "#mychannel"},
-  		Projector:       projector,
-  		SkipLeadingRows: 1,
+		return &bqloader.Handler{
+			Name:     "quickstart",                         // Handler name used in logs and notifications.
+			Pattern:  regexp.MustCompile("^example_bank/"), // This handler processes files matched to this pattern.
+			Encoding: japanese.ShiftJIS,                    // Source file encoding.
+			Parser:   bqloader.CSVParser(),                 // Parser parses source file into records.
+			Notifier: &bqloader.SlackNotifier{
+				Token:   os.Getenv("SLACK_TOKEN"),
+				Channel: os.Getenv("SLACK_CHANNEL"),
+			},
+			Projector:       projector, // Projector transforms each row.
+			SkipLeadingRows: 1,         // Skip header row.
 
-  		Project: os.Getenv("BIGQUERY_PROJECT_ID"),
-  		Dataset: os.Getenv("BIGQUERY_DATASET_ID"),
-  		Table:   os.Getenv("BIGQUERY_TABLE_ID"),
-  	}
-  }
+			// Destination.
+			Project: os.Getenv("BIGQUERY_PROJECT_ID"),
+			Dataset: os.Getenv("BIGQUERY_DATASET_ID"),
+			Table:   os.Getenv("BIGQUERY_TABLE_ID"),
+		}
+	}
 
-  // Func is the entrypoint for Cloud Functions.
-  func Func(ctx context.Context, e bqloader.Event) error {
-  	return loader.Handle(ctx, e)
-  }
+	// BQLoad is the entrypoint for Cloud Functions.
+	func BQLoad(ctx context.Context, e bqloader.Event) error {
+		return loader.Handle(ctx, e)
+	}
 
 */
 package bqloader

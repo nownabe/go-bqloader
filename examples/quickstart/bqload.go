@@ -30,7 +30,7 @@ func init() {
 
 func newHandler() *bqloader.Handler {
 	/*
-		this projector converts date fields formatted as "2006/01/02"
+		This projector converts date fields formatted as "2006/01/02"
 		at the first column into strings like "2006-01-02" that satisfies
 		BigQuery date type, and removes commas in numeric fields.
 	*/
