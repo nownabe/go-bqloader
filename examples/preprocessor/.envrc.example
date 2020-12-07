@@ -1,0 +1,12 @@
+export GCP_PROJECT="your-project"
+
+export SERVICE_ACCOUNT_NAME="bqloader"
+export SOURCE_BUCKET="$GCP_PROJECT-bqloader"
+export FUNCTION_NAME="bqloader"
+
+export BIGQUERY_PROJECT_ID="$GCP_PROJECT"
+export BIGQUERY_DATASET_ID="bqloader"
+export BIGQUERY_TABLE_ID="quickstart"
+
+export SLACK_TOKEN="your slack bot token"
+export SLACK_CHANNEL="#your-channel"
