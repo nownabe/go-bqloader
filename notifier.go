@@ -26,6 +26,8 @@ type Result struct {
 }
 
 // SlackNotifier is a notifier for Slack.
+// SlackNotifier requires bot token and permissions.
+// Recommended permissions are chat:write, chat:write.customize and chat:write.public.
 type SlackNotifier struct {
 	Channel string
 	Token   string
