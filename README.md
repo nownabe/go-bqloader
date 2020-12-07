@@ -90,3 +90,7 @@ func BQLoad(ctx context.Context, e bqloader.Event) error {
 	return loader.Handle(ctx, e)
 }
 ```
+
+## Diagram
+
+![diagram](https://raw.githubusercontent.com/nownabe/go-bqloader/main/diagram.png)
