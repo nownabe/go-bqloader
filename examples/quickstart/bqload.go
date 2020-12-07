@@ -29,6 +29,11 @@ func init() {
 }
 
 func newHandler() *bqloader.Handler {
+	/*
+		this projector converts date fields formatted as "2006/01/02"
+		at the first column into strings like "2006-01-02" that satisfies
+		BigQuery date type, and removes commas in numeric fields.
+	*/
 	projector := func(_ context.Context, r []string) ([]string, error) {
 		t, err := time.Parse("2006/01/02", r[0])
 		if err != nil {
@@ -44,17 +49,18 @@ func newHandler() *bqloader.Handler {
 	}
 
 	return &bqloader.Handler{
-		Name:     "quickstart",
-		Pattern:  regexp.MustCompile("^example_bank/"),
-		Encoding: japanese.ShiftJIS,
-		Parser:   bqloader.CSVParser(),
+		Name:     "quickstart",                         // Handler name used in logs and notifications.
+		Pattern:  regexp.MustCompile("^example_bank/"), // This handler processes files matched to this pattern.
+		Encoding: japanese.ShiftJIS,                    // Source file encoding.
+		Parser:   bqloader.CSVParser(),                 // Parser parses source file into records.
 		Notifier: &bqloader.SlackNotifier{
 			Token:   os.Getenv("SLACK_TOKEN"),
 			Channel: os.Getenv("SLACK_CHANNEL"),
 		},
-		Projector:       projector,
-		SkipLeadingRows: 1,
+		Projector:       projector, // Projector transforms each row.
+		SkipLeadingRows: 1,         // Skip header row.
 
+		// Destination.
 		Project: os.Getenv("BIGQUERY_PROJECT_ID"),
 		Dataset: os.Getenv("BIGQUERY_DATASET_ID"),
 		Table:   os.Getenv("BIGQUERY_TABLE_ID"),
