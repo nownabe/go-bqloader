@@ -16,7 +16,6 @@ For simple transforming and loading CSV, import the package `go.nownabe.dev/bqlo
 		"context"
 		"os"
 		"regexp"
-		"runtime"
 		"strings"
 		"time"
 
