@@ -7,6 +7,7 @@ import (
 
 	"go.nownabe.dev/bqloader"
 	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/xerrors"
 )
 
 // RakutenBankStatement build a handler for statements for Rakuten Bank (楽天銀行 入出金明細).
@@ -15,7 +16,7 @@ func RakutenBankStatement(name, pattern string, table Table, notifier bqloader.N
 		// 0: date (取引日)
 		t, err := time.Parse("20060102", r[0])
 		if err != nil {
-			return nil, err
+			return nil, xerrors.Errorf("failed to parse date: %w", err)
 		}
 		r[0] = t.Format("2006-01-02")
 

@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"encoding/csv"
-	"fmt"
 	"io"
 	"regexp"
 	"time"
@@ -39,12 +38,12 @@ func RakutenCardStatement(name, pattern string, table Table, notifier bqloader.N
 
 		paymentMonth, ok := ctx.Value(monthKey).(string)
 		if !ok {
-			return nil, fmt.Errorf("failed to get payment month from context: %v", paymentMonth)
+			return nil, xerrors.Errorf("failed to get payment month from context: %v", paymentMonth)
 		}
 
 		t, err := time.Parse("2006/01/02", r[0])
 		if err != nil {
-			return nil, err
+			return nil, xerrors.Errorf("failed to parse date: %w", err)
 		}
 
 		r[0] = t.Format("2006-01-02")
@@ -59,7 +58,7 @@ func RakutenCardStatement(name, pattern string, table Table, notifier bqloader.N
 
 		records, err := reader.ReadAll()
 		if err != nil {
-			return nil, err
+			return nil, xerrors.Errorf("failed to read content as a CSV: %w", err)
 		}
 
 		return records, nil
