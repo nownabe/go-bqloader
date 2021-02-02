@@ -122,7 +122,7 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 		if h.match(e.Name) {
 			h := h
 			g.Go(func() error {
-				return h.handle(ctx, e)
+				return h.Handle(ctx, e)
 			})
 		}
 	}

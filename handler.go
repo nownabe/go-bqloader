@@ -57,7 +57,8 @@ func (h *Handler) match(name string) bool {
 	return h.Pattern != nil && h.Pattern.MatchString(name)
 }
 
-func (h *Handler) handle(ctx context.Context, e Event) error {
+// Handle handles events.
+func (h *Handler) Handle(ctx context.Context, e Event) error {
 	ctx = withHandlerStartedTime(ctx)
 	l := log.Ctx(ctx)
 	l = h.logger(ctx, l)

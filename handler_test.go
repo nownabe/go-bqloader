@@ -33,10 +33,9 @@ func Test_Handler_WithSkipping(t *testing.T) {
 		Loader:    tl,
 		semaphore: make(chan struct{}, 1),
 	}
-
 	e := Event{Name: "test/name", Bucket: "bucket", source: src}
 
-	err := handler.handle(context.Background(), e)
+	err := handler.Handle(context.Background(), e)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
@@ -115,10 +114,9 @@ func Test_Handler_WithPreprocessor(t *testing.T) {
 		Loader:       tl,
 		semaphore:    make(chan struct{}, 1),
 	}
-
 	e := Event{Name: "test/name", Bucket: "bucket", source: src}
 
-	err := handler.handle(context.Background(), e)
+	err := handler.Handle(context.Background(), e)
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 	}
