@@ -33,7 +33,7 @@ func TestLoader(t *testing.T) {
 		Notifier:  tn,
 		Projector: projector,
 		extractor: te,
-		loader:    tl,
+		Loader:    tl,
 	}
 
 	ctx := context.Background()
@@ -90,7 +90,7 @@ func TestBQLoader_error(t *testing.T) {
 		Notifier:  tn,
 		Projector: projector,
 		extractor: te,
-		loader:    tl,
+		Loader:    tl,
 	}
 
 	ctx := context.Background()
@@ -123,11 +123,11 @@ type testLoader struct {
 	result [][]string
 }
 
-func newTestLoader() loader {
+func newTestLoader() Loader {
 	return &testLoader{}
 }
 
-func (l *testLoader) load(ctx context.Context, rs [][]string) error {
+func (l *testLoader) Load(ctx context.Context, rs [][]string) error {
 	l.result = rs
 	return nil
 }

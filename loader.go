@@ -9,16 +9,16 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// loader loads projected data into a destination such as BigQuery.
-type loader interface {
-	load(context.Context, [][]string) error
+// Loader loads projected data into a destination such as BigQuery.
+type Loader interface {
+	Load(context.Context, [][]string) error
 }
 
 type defaultLoader struct {
 	table *bigquery.Table
 }
 
-func newDefaultLoader(ctx context.Context, project, dataset, table string) (loader, error) {
+func newDefaultLoader(ctx context.Context, project, dataset, table string) (Loader, error) {
 	bq, err := bigquery.NewClient(ctx, project)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to build bigquery client for %s.%s.%s: %w",
@@ -30,7 +30,7 @@ func newDefaultLoader(ctx context.Context, project, dataset, table string) (load
 	return &defaultLoader{table: t}, nil
 }
 
-func (l *defaultLoader) load(ctx context.Context, records [][]string) error {
+func (l *defaultLoader) Load(ctx context.Context, records [][]string) error {
 	buf := &bytes.Buffer{}
 	if err := csv.NewWriter(buf).WriteAll(records); err != nil {
 		return xerrors.Errorf("failed to write csv into buffer: %w", err)

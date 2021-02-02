@@ -43,7 +43,7 @@ type Handler struct {
 	Table string
 
 	extractor extractor
-	loader    loader
+	Loader    Loader
 	semaphore chan struct{}
 }
 
@@ -116,7 +116,7 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 		return xerrors.Errorf("failed to project: %w", err)
 	}
 
-	if err := h.loader.load(ctx, records); err != nil {
+	if err := h.Loader.Load(ctx, records); err != nil {
 		return xerrors.Errorf("failed to load: %w", err)
 	}
 

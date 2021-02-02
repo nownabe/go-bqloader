@@ -74,7 +74,7 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 		h.extractor = ex
 	}
 
-	if h.loader == nil {
+	if h.Loader == nil {
 		loader, err := newDefaultLoader(ctx, h.Project, h.Dataset, h.Table)
 		if err != nil {
 			err = xerrors.Errorf("failed to build default loader for table '%s.%s.%s': %w",
@@ -82,7 +82,7 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 			h.logger(ctx, l.logger).Err(err).Msg(err.Error())
 			return err
 		}
-		h.loader = loader
+		h.Loader = loader
 	}
 
 	h.semaphore = l.semaphore
