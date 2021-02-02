@@ -57,6 +57,12 @@ func (h *Handler) match(name string) bool {
 	return h.Pattern != nil && h.Pattern.MatchString(name)
 }
 
+// SetConcurrency sets handler's concurrency directly.
+// Normally set concurrency to BQLoader with WithConcurrency option.
+func (h *Handler) SetConcurrency(n int) {
+	h.semaphore = make(chan struct{}, n)
+}
+
 // Handle handles events.
 func (h *Handler) Handle(ctx context.Context, e Event) error {
 	ctx = withHandlerStartedTime(ctx)
