@@ -17,6 +17,7 @@ type testLoader struct {
 
 func (l *testLoader) Load(ctx context.Context, rs [][]string) error {
 	l.result = rs
+
 	return nil
 }
 
