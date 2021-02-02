@@ -29,6 +29,8 @@ func (e *testExtractor) Extract(_ context.Context, ev bqloader.Event) (io.Reader
 }
 
 func assertEqual(t *testing.T, expected [][]string, actual [][]string) {
+	t.Helper()
+
 	if len(expected) != len(actual) {
 		t.Errorf("expected %d length, but %d", len(expected), len(actual))
 	}
@@ -51,6 +53,8 @@ func buildTestHandler(
 	csv string,
 	f func(string, string, handlers.Table, bqloader.Notifier) *bqloader.Handler,
 ) (*bqloader.Handler, *testLoader) {
+	t.Helper()
+
 	body, err := ioutil.ReadFile(csv)
 	if err != nil {
 		t.Fatalf("failed to read CSV: %v", err)
