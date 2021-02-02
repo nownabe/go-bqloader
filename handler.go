@@ -42,7 +42,7 @@ type Handler struct {
 	// Table specifies BigQuery table ID as destination.
 	Table string
 
-	extractor extractor
+	Extractor Extractor
 	Loader    Loader
 	semaphore chan struct{}
 }
@@ -96,7 +96,7 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 		return xerrors.Errorf("failed to preprocess: %w", err)
 	}
 
-	r, closer, err := h.extractor.extract(ctx, e)
+	r, closer, err := h.Extractor.Extract(ctx, e)
 	if err != nil {
 		return xerrors.Errorf("failed to extract: %w", err)
 	}

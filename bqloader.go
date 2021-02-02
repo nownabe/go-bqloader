@@ -64,14 +64,14 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if h.extractor == nil {
+	if h.Extractor == nil {
 		ex, err := newDefaultExtractor(ctx, h.Project)
 		if err != nil {
 			err = xerrors.Errorf("failed to build default extractor for project '%s': %w", h.Project, err)
 			h.logger(ctx, l.logger).Err(err).Msg(err.Error())
 			return err
 		}
-		h.extractor = ex
+		h.Extractor = ex
 	}
 
 	if h.Loader == nil {

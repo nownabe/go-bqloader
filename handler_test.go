@@ -29,7 +29,7 @@ func Test_Handler_WithSkipping(t *testing.T) {
 		Parser:    CSVParser(),
 		Projector: projector,
 		BatchSize: defaultBatchSize,
-		extractor: newTestExtractor(),
+		Extractor: newTestExtractor(),
 		Loader:    tl,
 		semaphore: make(chan struct{}, 1),
 	}
@@ -111,7 +111,7 @@ func Test_Handler_WithPreprocessor(t *testing.T) {
 		Projector:    projector,
 		Preprocessor: preprocessor,
 		BatchSize:    defaultBatchSize,
-		extractor:    newTestExtractor(),
+		Extractor:    newTestExtractor(),
 		Loader:       tl,
 		semaphore:    make(chan struct{}, 1),
 	}

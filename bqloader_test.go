@@ -32,7 +32,7 @@ func TestLoader(t *testing.T) {
 		Parser:    CSVParser(),
 		Notifier:  tn,
 		Projector: projector,
-		extractor: te,
+		Extractor: te,
 		Loader:    tl,
 	}
 
@@ -89,7 +89,7 @@ func TestBQLoader_error(t *testing.T) {
 		Parser:    CSVParser(),
 		Notifier:  tn,
 		Projector: projector,
-		extractor: te,
+		Extractor: te,
 		Loader:    tl,
 	}
 
@@ -111,11 +111,11 @@ func TestBQLoader_error(t *testing.T) {
 
 type testExtractor struct{}
 
-func newTestExtractor() extractor {
+func newTestExtractor() Extractor {
 	return &testExtractor{}
 }
 
-func (e *testExtractor) extract(_ context.Context, ev Event) (io.Reader, func(), error) {
+func (e *testExtractor) Extract(_ context.Context, ev Event) (io.Reader, func(), error) {
 	return ev.source, func() {}, nil
 }
 
