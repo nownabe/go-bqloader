@@ -12,7 +12,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// RakutenCardStatement build a handler for statements of Rakuten Card (楽天カード 明細)
+// RakutenCardStatement build a handler for statements of Rakuten Card (楽天カード 明細).
 func RakutenCardStatement(name, pattern string, table Table, notifier bqloader.Notifier) *bqloader.Handler {
 	type contextKey string
 	var monthKey contextKey = "month"

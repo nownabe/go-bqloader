@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/encoding/japanese"
 )
 
-// RakutenBankStatement build a handler for statements for Rakuten Bank (楽天銀行 入出金明細)
+// RakutenBankStatement build a handler for statements for Rakuten Bank (楽天銀行 入出金明細).
 func RakutenBankStatement(name, pattern string, table Table, notifier bqloader.Notifier) *bqloader.Handler {
 	projector := func(ctx context.Context, r []string) ([]string, error) {
 		// 0: date (取引日)
