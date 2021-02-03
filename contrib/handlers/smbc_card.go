@@ -11,6 +11,7 @@ import (
 )
 
 // SMBCCardStatement build a *bqloader.Handler for statements of SMBC card (三井住友VISAカード).
+// To add column of payment month, keep the file name when you downloaded it.
 func SMBCCardStatement(name, pattern string, table Table, notifier bqloader.Notifier) *bqloader.Handler {
 	var monthKey contextKey = "month"
 

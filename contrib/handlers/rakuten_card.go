@@ -12,6 +12,7 @@ import (
 )
 
 // RakutenCardStatement build a handler for statements of Rakuten Card (楽天カード 明細).
+// To add column of payment month, keep the file name when you downloaded it.
 func RakutenCardStatement(name, pattern string, table Table, notifier bqloader.Notifier) *bqloader.Handler {
 	var monthKey contextKey = "month"
 
