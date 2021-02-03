@@ -12,7 +12,6 @@ import (
 
 // SMBCCardStatement build a *bqloader.Handler for statements of SMBC card (三井住友VISAカード).
 func SMBCCardStatement(name, pattern string, table Table, notifier bqloader.Notifier) *bqloader.Handler {
-	type contextKey string
 	var monthKey contextKey = "month"
 
 	re := regexp.MustCompile(`/(\d+)\.csv`)
