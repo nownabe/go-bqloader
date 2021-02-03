@@ -16,3 +16,8 @@ Pre-Configured Handlers
 
 * `handlers.RakutenCardStatement`: Statements of Rakuten Card (楽天カード)
 * `handlers.SMBCCardStatement`: Statements of SMBC Card (三井住友カード)
+
+## Securities
+
+* `handlers.SBISecuritiesGlobalBankingStatement`: Receive and pay of SBI Securities Global (SBI証券 外国株 入出金明細)
+* `handlers.SBISecuritiesGlobalExecutionHistory`: Execution hisotry of SBI Securities Global (SBI証券 外国株 約定履歴)
