@@ -11,6 +11,8 @@ import (
 )
 
 func TestLoader(t *testing.T) {
+	t.Parallel()
+
 	projector := func(_ context.Context, r []string) ([]string, error) {
 		t, err := time.Parse("2006/01/02", r[0])
 		if err != nil {
@@ -32,8 +34,8 @@ func TestLoader(t *testing.T) {
 		Parser:    CSVParser(),
 		Notifier:  tn,
 		Projector: projector,
-		extractor: te,
-		loader:    tl,
+		Extractor: te,
+		Loader:    tl,
 	}
 
 	ctx := context.Background()
@@ -75,6 +77,8 @@ func TestLoader(t *testing.T) {
 }
 
 func TestBQLoader_error(t *testing.T) {
+	t.Parallel()
+
 	projector := func(_ context.Context, r []string) ([]string, error) {
 		return nil, fmt.Errorf("projector error")
 	}
@@ -89,8 +93,8 @@ func TestBQLoader_error(t *testing.T) {
 		Parser:    CSVParser(),
 		Notifier:  tn,
 		Projector: projector,
-		extractor: te,
-		loader:    tl,
+		Extractor: te,
+		Loader:    tl,
 	}
 
 	ctx := context.Background()
@@ -111,11 +115,11 @@ func TestBQLoader_error(t *testing.T) {
 
 type testExtractor struct{}
 
-func newTestExtractor() extractor {
+func newTestExtractor() Extractor {
 	return &testExtractor{}
 }
 
-func (e *testExtractor) extract(_ context.Context, ev Event) (io.Reader, func(), error) {
+func (e *testExtractor) Extract(_ context.Context, ev Event) (io.Reader, func(), error) {
 	return ev.source, func() {}, nil
 }
 
@@ -123,11 +127,11 @@ type testLoader struct {
 	result [][]string
 }
 
-func newTestLoader() loader {
+func newTestLoader() Loader {
 	return &testLoader{}
 }
 
-func (l *testLoader) load(ctx context.Context, rs [][]string) error {
+func (l *testLoader) Load(ctx context.Context, rs [][]string) error {
 	l.result = rs
 	return nil
 }

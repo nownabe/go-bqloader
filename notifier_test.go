@@ -68,6 +68,8 @@ func newSlackClient() *http.Client {
 }
 
 func TestSlackNotifier(t *testing.T) {
+	t.Parallel()
+
 	result := &bqloader.Result{
 		Event:   bqloader.Event{Name: "testfile"},
 		Handler: &bqloader.Handler{Name: "myhandler"},
@@ -115,6 +117,8 @@ func TestSlackNotifier(t *testing.T) {
 		c.notifier.HTTPClient = slackClient
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			err := c.notifier.Notify(context.Background(), c.result)
 			if c.expectedHasError && err == nil {
 				t.Errorf("expected error but no error occurred")

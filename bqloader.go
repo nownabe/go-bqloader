@@ -64,17 +64,17 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if h.extractor == nil {
+	if h.Extractor == nil {
 		ex, err := newDefaultExtractor(ctx, h.Project)
 		if err != nil {
 			err = xerrors.Errorf("failed to build default extractor for project '%s': %w", h.Project, err)
 			h.logger(ctx, l.logger).Err(err).Msg(err.Error())
 			return err
 		}
-		h.extractor = ex
+		h.Extractor = ex
 	}
 
-	if h.loader == nil {
+	if h.Loader == nil {
 		loader, err := newDefaultLoader(ctx, h.Project, h.Dataset, h.Table)
 		if err != nil {
 			err = xerrors.Errorf("failed to build default loader for table '%s.%s.%s': %w",
@@ -82,7 +82,7 @@ func (l *bqloader) AddHandler(ctx context.Context, h *Handler) error {
 			h.logger(ctx, l.logger).Err(err).Msg(err.Error())
 			return err
 		}
-		h.loader = loader
+		h.Loader = loader
 	}
 
 	h.semaphore = l.semaphore
@@ -122,7 +122,7 @@ func (l *bqloader) Handle(ctx context.Context, e Event) error {
 		if h.match(e.Name) {
 			h := h
 			g.Go(func() error {
-				return h.handle(ctx, e)
+				return h.Handle(ctx, e)
 			})
 		}
 	}

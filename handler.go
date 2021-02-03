@@ -42,8 +42,8 @@ type Handler struct {
 	// Table specifies BigQuery table ID as destination.
 	Table string
 
-	extractor extractor
-	loader    loader
+	Extractor Extractor
+	Loader    Loader
 	semaphore chan struct{}
 }
 
@@ -57,7 +57,14 @@ func (h *Handler) match(name string) bool {
 	return h.Pattern != nil && h.Pattern.MatchString(name)
 }
 
-func (h *Handler) handle(ctx context.Context, e Event) error {
+// SetConcurrency sets handler's concurrency directly.
+// Normally set concurrency to BQLoader with WithConcurrency option.
+func (h *Handler) SetConcurrency(n int) {
+	h.semaphore = make(chan struct{}, n)
+}
+
+// Handle handles events.
+func (h *Handler) Handle(ctx context.Context, e Event) error {
 	ctx = withHandlerStartedTime(ctx)
 	l := log.Ctx(ctx)
 	l = h.logger(ctx, l)
@@ -96,7 +103,7 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 		return xerrors.Errorf("failed to preprocess: %w", err)
 	}
 
-	r, closer, err := h.extractor.extract(ctx, e)
+	r, closer, err := h.Extractor.Extract(ctx, e)
 	if err != nil {
 		return xerrors.Errorf("failed to extract: %w", err)
 	}
@@ -116,7 +123,7 @@ func (h *Handler) process(ctx context.Context, e Event) error {
 		return xerrors.Errorf("failed to project: %w", err)
 	}
 
-	if err := h.loader.load(ctx, records); err != nil {
+	if err := h.Loader.Load(ctx, records); err != nil {
 		return xerrors.Errorf("failed to load: %w", err)
 	}
 
