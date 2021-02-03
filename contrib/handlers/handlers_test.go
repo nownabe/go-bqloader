@@ -3,6 +3,7 @@ package handlers_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"testing"
@@ -71,4 +72,66 @@ func buildTestHandler(
 	h.Extractor = &testExtractor{source: bytes.NewBuffer(body)}
 
 	return h, tl
+}
+
+func Test_PartialCSVParser(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name         string
+		skipHeadRows uint
+		skipTailRows uint
+		sep          string
+		body         string
+		expect       [][]string
+	}{
+		{
+			skipHeadRows: 3,
+			skipTailRows: 3,
+			sep:          "\n",
+			body:         "foo\n\nbar\n1,2,3\n4,5,6\n\nbaz\nqux",
+			expect:       [][]string{{"1", "2", "3"}, {"4", "5", "6"}},
+		},
+		{
+			skipHeadRows: 0,
+			skipTailRows: 3,
+			sep:          "\n",
+			body:         "1,2,3\n4,5,6\n\nbaz\nqux",
+			expect:       [][]string{{"1", "2", "3"}, {"4", "5", "6"}},
+		},
+		{
+			skipHeadRows: 3,
+			skipTailRows: 0,
+			sep:          "\n",
+			body:         "foo\n\nbar\n1,2,3\n4,5,6",
+			expect:       [][]string{{"1", "2", "3"}, {"4", "5", "6"}},
+		},
+		{
+			skipHeadRows: 3,
+			skipTailRows: 3,
+			sep:          "\r\n",
+			body:         "foo\r\n\r\nbar\r\n1,2,3\r\n4,5,6\r\n\r\nbaz\r\nqux",
+			expect:       [][]string{{"1", "2", "3"}, {"4", "5", "6"}},
+		},
+	}
+
+	ctx := context.Background()
+	for _, c := range cases {
+		c := c
+		t.Run(
+			fmt.Sprintf("head=%d,tail=%d,sep=%q", c.skipHeadRows, c.skipTailRows, c.sep),
+			func(t *testing.T) {
+				t.Parallel()
+
+				f := handlers.PartialCSVParser(c.skipHeadRows, c.skipTailRows, c.sep)
+				actual, err := f(ctx, bytes.NewReader([]byte(c.body)))
+
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+
+				assertEqual(t, c.expect, actual)
+			},
+		)
+	}
 }
