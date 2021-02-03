@@ -21,6 +21,17 @@ type Table struct {
 	Table   string
 }
 
+// TableGenerator returns Table generator func.
+func TableGenerator(project, dataset string) func(string) Table {
+	return func(table string) Table {
+		return Table{
+			Project: project,
+			Dataset: dataset,
+			Table:   table,
+		}
+	}
+}
+
 // CleanNumber cleans numbers includes commas and currency marks.
 func CleanNumber(n string) string {
 	cn := ""
@@ -37,6 +48,13 @@ func CleanNumber(n string) string {
 	}
 
 	return cn
+}
+
+// MustAddHandlers adds handlers into BQLoader.
+func MustAddHandlers(ctx context.Context, loader bqloader.BQLoader, handlers ...*bqloader.Handler) {
+	for _, handler := range handlers {
+		loader.MustAddHandler(ctx, handler)
+	}
 }
 
 // PartialCSVParser builds a parser for CSV with invalid head and tail lines.
