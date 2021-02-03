@@ -9,6 +9,8 @@ import (
 )
 
 func Test_Handler_WithSkipping(t *testing.T) {
+	t.Parallel()
+
 	projector := func(_ context.Context, r []string) ([]string, error) {
 		if r[0] == "" {
 			return nil, nil
@@ -80,6 +82,8 @@ func Test_Handler_WithSkipping(t *testing.T) {
 }
 
 func Test_Handler_WithPreprocessor(t *testing.T) {
+	t.Parallel()
+
 	projector := func(ctx context.Context, r []string) ([]string, error) {
 		prefix, ok := ctx.Value("prefix").(string)
 		if !ok {

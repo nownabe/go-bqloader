@@ -9,6 +9,8 @@ import (
 )
 
 func Test_RakutenBankStatement(t *testing.T) {
+	t.Parallel()
+
 	const csv = "csv/rakuten_bank_statement.csv"
 
 	expected := [][]string{
