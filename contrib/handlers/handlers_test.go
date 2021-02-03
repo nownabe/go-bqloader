@@ -74,6 +74,34 @@ func buildTestHandler(
 	return h, tl
 }
 
+func Test_CleanNumber(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		input  string
+		output string
+	}{
+		{input: "12,345", output: "12345"},
+		{input: "306.4800USD", output: "306.4800"},
+		{input: "257,345円", output: "257345"},
+		{input: "-12,345", output: "-12345"},
+		{input: "¥12345-", output: "12345"},
+		{input: "-", output: ""},
+	}
+
+	for _, c := range cases {
+		c := c
+		t.Run(c.input, func(t *testing.T) {
+			t.Parallel()
+
+			o := handlers.CleanNumber(c.input)
+			if o != c.output {
+				t.Errorf("CleanNumber(%s) should be %s, but %s", c.input, c.output, o)
+			}
+		})
+	}
+}
+
 func Test_PartialCSVParser(t *testing.T) {
 	t.Parallel()
 

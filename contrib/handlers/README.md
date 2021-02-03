@@ -9,6 +9,7 @@ Pre-Configured Handlers
 
 * `handlers.RakutenBankStatement`: Statements of Rakuten Bank (楽天銀行 入出金明細)
 * `handlers.SMBCStatement`: Statements of SMBC (三井住友銀行 入出金明細)
+* `handlers.SonyBankStatement`: Statements of Sony Bank (ソニー銀行 入出金明細)
 
 ## Credit Card
 

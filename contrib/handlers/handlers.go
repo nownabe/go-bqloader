@@ -21,6 +21,24 @@ type Table struct {
 	Table   string
 }
 
+// CleanNumber cleans numbers includes commas and currency marks.
+func CleanNumber(n string) string {
+	cn := ""
+	for i, c := range n {
+		if '0' <= c && c <= '9' || c == '.' {
+			cn += string(c)
+		} else if i == 0 && c == '-' {
+			cn += string(c)
+		}
+	}
+
+	if cn == "-" {
+		return ""
+	}
+
+	return cn
+}
+
 // PartialCSVParser builds a parser for CSV with invalid head and tail lines.
 func PartialCSVParser(skipHeadRows uint, skipTailRows uint, sep string) bqloader.Parser {
 	return func(_ context.Context, r io.Reader) ([][]string, error) {
