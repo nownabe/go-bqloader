@@ -153,7 +153,6 @@ func Test_PartialCSVParser(t *testing.T) {
 
 				f := handlers.PartialCSVParser(c.skipHeadRows, c.skipTailRows, c.sep)
 				actual, err := f(ctx, bytes.NewReader([]byte(c.body)))
-
 				if err != nil {
 					t.Errorf("Unexpected error: %v", err)
 				}
