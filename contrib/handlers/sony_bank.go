@@ -10,7 +10,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-// SonyBankStatement build a handler for statements of Sony Bank (ソニー銀行)
+// SonyBankStatement build a handler for statements of Sony Bank (ソニー銀行).
 func SonyBankStatement(name, pattern string, table Table, notifier bqloader.Notifier) *bqloader.Handler {
 	projector := func(_ context.Context, r []string) ([]string, error) {
 		t, err := time.Parse("2006年01月02日", r[0])
