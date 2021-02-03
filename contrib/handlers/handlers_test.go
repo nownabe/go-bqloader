@@ -43,7 +43,7 @@ func assertEqual(t *testing.T, expected [][]string, actual [][]string) {
 
 		for j := range expected[i] {
 			if expected[i][j] != actual[i][j] {
-				t.Errorf("expected actual[%d][%d] is %s, but %s", i, j, expected[i][j], actual[i][j])
+				t.Errorf("expected actual[%d][%d] is '%s', but '%s'", i, j, expected[i][j], actual[i][j])
 			}
 		}
 	}
