@@ -8,6 +8,7 @@ Pre-Configured Handlers
 ## Bank
 
 * `handlers.RakutenBankStatement`: Statements of Rakuten Bank (楽天銀行 入出金明細)
+* `handlers.SBISumishinNetBankStatement`: Statements of Sumishin SBI Net Bank (住信SBIネット銀行 入出金明細)
 * `handlers.SMBCStatement`: Statements of SMBC (三井住友銀行 入出金明細)
 * `handlers.SonyBankStatement`: Statements of Sony Bank (ソニー銀行 入出金明細)
 
