@@ -1,0 +1,50 @@
+[
+  {
+    "name": "date",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "ご利用日"
+  },
+  {
+    "name": "description",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "ご利用店名"
+  },
+  {
+    "name": "usage_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "ご利用金額"
+  },
+  {
+    "name": "payment_section",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "支払区分"
+  },
+  {
+    "name": "this_time",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "今回回数"
+  },
+  {
+    "name": "payment_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "お支払金額"
+  },
+  {
+    "name": "other",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "その他"
+  },
+  {
+    "name": "payment_month",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "支払い月"
+  }
+]

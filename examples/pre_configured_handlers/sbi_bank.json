@@ -1,0 +1,38 @@
+[
+  {
+    "name": "date",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "日付"
+  },
+  {
+    "name": "description",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "内容"
+  },
+  {
+    "name": "withdrawal_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "出金金額 (円)"
+  },
+  {
+    "name": "deposit_amount",
+    "type": "NUMERIC",
+    "mode": "NULLABLE",
+    "description": "入金金額 (円)"
+  },
+  {
+    "name": "balance",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "残高 (円)"
+  },
+  {
+    "name": "memo",
+    "type": "STRING",
+    "mode": "NULLABLE",
+    "description": "メモ"
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "name": "contract_date",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "国内約定日"
+  },
+  {
+    "name": "name",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "銘柄名"
+  },
+  {
+    "name": "code",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "銘柄コード"
+  },
+  {
+    "name": "market",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "市場"
+  },
+  {
+    "name": "stock_type",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "商品区分"
+  },
+  {
+    "name": "order_type",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "注文種別"
+  },
+  {
+    "name": "deal_type",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "取引"
+  },
+  {
+    "name": "account_type",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "預り区分"
+  },
+  {
+    "name": "quantity",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "約定数量"
+  },
+  {
+    "name": "unitPrice",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "約定単価 (USD)"
+  },
+  {
+    "name": "delivery_date",
+    "type": "DATE",
+    "mode": "REQUIRED",
+    "description": "国内受渡日"
+  },
+  {
+    "name": "deliveryAmount",
+    "type": "NUMERIC",
+    "mode": "REQUIRED",
+    "description": "受渡金額 (JPY)"
+  }
+]
