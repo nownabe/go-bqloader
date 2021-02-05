@@ -1,6 +1,6 @@
 .envrc
 
-.gcloudignore
+/.gcloudignore
 deploy.envrc
 /deploy.sh
 func.go
