@@ -69,11 +69,7 @@ For simple transforming and loading CSV, import the package `go.nownabe.dev/bqlo
 	var loader bqloader.BQLoader
 
 	func init() {
-		var err error
-		loader, err = bqloader.New()
-		if err != nil {
-			panic(err)
-		}
+		loader, _ = bqloader.New()
 		loader.MustAddHandler(context.Background(), newHandler())
 	}
 

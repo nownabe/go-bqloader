@@ -29,8 +29,6 @@ package myfunc
 
 import (
 	"context"
-	"os"
-	"runtime"
 
 	"go.nownabe.dev/bqloader"
 	"go.nownabe.dev/bqloader/contrib/handlers"
@@ -89,11 +87,7 @@ import (
 var loader bqloader.BQLoader
 
 func init() {
-	var err error
-	loader, err = bqloader.New()
-	if err != nil {
-		panic(err)
-	}
+	loader, _ = bqloader.New()
 	loader.MustAddHandler(context.Background(), newHandler())
 }
 
