@@ -5,7 +5,7 @@ Pre-Configured Handlers
 
 ## Usage
 
-See an [example](https://github.com/nownabe/go-bqloader/blob/doc/examples/pre_configured_handlers/bqload.go).
+See an [example](https://github.com/nownabe/go-bqloader/blob/main/examples/pre_configured_handlers/bqload.go).
 
 ## List of Handlers
 

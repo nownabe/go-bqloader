@@ -9,7 +9,7 @@ See the example to get a full instruction.
 https://github.com/nownabe/go-bqloader/tree/main/examples/pre_configured_handlers
 
 To load some types of CSV formats, you can use pre-configured handlers.
-See the full list on GitHub. https://github.com/nownabe/go-bqloader/tree/doc/contrib/handlers
+See the full list on GitHub. https://github.com/nownabe/go-bqloader/tree/main/contrib/handlers
 
 	package myfunc
 
