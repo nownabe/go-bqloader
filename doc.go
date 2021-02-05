@@ -3,7 +3,48 @@
 Package bqloader is a simple ETL framework running on Cloud Functions
 to load data from Cloud Storage into BigQuery.
 
-Getting started
+Getting started with pre-configured handlers
+
+See the example to get a full instruction.
+https://github.com/nownabe/go-bqloader/tree/main/examples/pre_configured_handlers
+
+To load some types of CSV formats, you can use pre-configured handlers.
+See the full list on GitHub. https://github.com/nownabe/go-bqloader/tree/doc/contrib/handlers
+
+	package myfunc
+
+	import (
+		"context"
+
+		"go.nownabe.dev/bqloader"
+		"go.nownabe.dev/bqloader/contrib/handlers"
+	)
+
+	var loader bqloader.BQLoader
+
+	func init() {
+		loader, _ = bqloader.New()
+
+		t := handlers.TableGenerator(os.Getenv("BIGQUERY_PROJECT_ID"), os.Getenv("BIGQUERY_DATASET_ID"))
+		n := &bqloader.SlackNotifier{
+			Token:   os.Getenv("SLACK_TOKEN"),
+			Channel: os.Getenv("SLACK_CHANNEL"),
+		}
+
+		handlers.MustAddHandlers(context.Background(), loader,
+			// These build handlers to load CSVs, given four arguments:
+			// handler name, a pattern to file path on Cloud Storage, a BigQuery table and a notifier.
+			handlers.SBISumishinNetBankStatement("SBI Bank", `^sbi_bank/`, t("sbi_bank"), n),
+			handlers.SMBCCardStatement("SMBC Card", `^smbc_card/`, t("smbc_card"), n),
+		)
+	}
+
+	// BQLoad is the entrypoint for Cloud Functions.
+	func BQLoad(ctx context.Context, e bqloader.Event) error {
+		return loader.Handle(ctx, e)
+	}
+
+Getting started with custom handlers
 
 See Quickstart example to get a full instruction.
 https://github.com/nownabe/go-bqloader/tree/main/examples/quickstart
@@ -28,11 +69,7 @@ For simple transforming and loading CSV, import the package `go.nownabe.dev/bqlo
 	var loader bqloader.BQLoader
 
 	func init() {
-		var err error
-		loader, err = bqloader.New()
-		if err != nil {
-			panic(err)
-		}
+		loader, _ = bqloader.New()
 		loader.MustAddHandler(context.Background(), newHandler())
 	}
 
