@@ -9,6 +9,7 @@ if [[ ! -e .envrc ]]; then
   exit 1
 fi
 
+# shellcheck disable=SC1091
 source .envrc
 
-gsutil cp *.csv gs://$SOURCE_BUCKET/csv/
+gsutil cp ./*.csv "gs://$SOURCE_BUCKET/csv/"
