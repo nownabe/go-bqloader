@@ -2,7 +2,7 @@
 
 .gcloudignore
 deploy.envrc
-deploy.sh
+/deploy.sh
 func.go
-*.csv
+/*.csv
 
