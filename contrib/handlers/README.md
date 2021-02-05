@@ -1,6 +1,8 @@
 Pre-Configured Handlers
 =======================
 
+[![PkgGoDev](https://pkg.go.dev/badge/go.nownabe.dev/bqloader/contrib/handlers)](https://pkg.go.dev/go.nownabe.dev/bqloader/contrib/handlers)
+
 ## Usage
 
 See an [example](https://github.com/nownabe/go-bqloader/blob/doc/examples/pre_configured_handlers/bqload.go).
