@@ -21,7 +21,7 @@ go get -u go.nownabe.dev/bqloader
 See the [example](https://github.com/nownabe/go-bqloader/tree/main/examples/pre_configured_handlers) to get a full instruction.
 
 To load some types of CSV formats, you can use pre-configured handlers.
-See [full list](https://github.com/nownabe/go-bqloader/tree/doc/contrib/handlers).
+See [full list](https://github.com/nownabe/go-bqloader/tree/main/contrib/handlers).
 
 
 ```go
