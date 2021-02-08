@@ -8,7 +8,7 @@ bqloader
 ![GitHub](https://img.shields.io/github/license/nownabe/go-bqloader)
 ![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/nownabe/go-bqloader?sort=semver)
 
-bqloader is a simple ETL framework running on Cloud Functions to load data from Cloud Storage into BigQuery.
+bqloader is a simple ETL framework to load data from Cloud Storage into BigQuery.
 
 ## Installation
 
