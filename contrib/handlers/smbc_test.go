@@ -72,3 +72,29 @@ func Test_SMBCStatement(t *testing.T) {
 
 	assertEqual(t, expected, tl.result)
 }
+
+func Test_SMBCStatement2(t *testing.T) {
+	t.Parallel()
+
+	const csv = "csv/smbc_statement2.csv"
+
+	expected := [][]string{
+		{"2020-10-12", "-12200", "", "ミツイスミトモカ-ド (カ", "172991", "", ""},
+		{"2020-10-05", "-1900", "", "ミツイスミトモカ-ド (カ", "185191", "", ""},
+		{"2020-09-28", "-12571", "", "ミツイスミトモカ-ド (カ", "187091", "", ""},
+		{"2020-09-28", "-15000", "", "ミツイスミトモカ-ド (カ", "199662", "", ""},
+		{"2020-09-28", "-194873", "", "ミツイスミトモカ-ド (カ", "214662", "", ""},
+		{"2020-09-17", "", "240000", "振込　スミトモタロウ", "409535", "", ""},
+	}
+
+	h, tl := buildTestHandler(t, csv, handlers.SMBCStatement)
+
+	name := "path_to/smbc_statement2.csv"
+	e := bqloader.Event{Name: name, Bucket: "bucket"}
+
+	if err := h.Handle(context.Background(), e); err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
+
+	assertEqual(t, expected, tl.result)
+}
