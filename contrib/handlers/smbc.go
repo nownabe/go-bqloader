@@ -12,34 +12,39 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func parseSMBCWareki(w string) (time.Time, error) {
-	if len(w) != 9 {
-		return time.Time{}, xerrors.Errorf("invalid date format: %s", w)
+func parseSMBCDate(date string) (time.Time, error) {
+	t, err := time.Parse("2006/01/02", date)
+	if err == nil {
+		return t, nil
+	}
+
+	if len(date) != 9 {
+		return time.Time{}, xerrors.Errorf("invalid date format: %s", date)
 	}
 
 	var rekiBase int
-	switch w[0] {
+	switch date[0] {
 	case 'H':
 		rekiBase = 1988
 	case 'R':
 		rekiBase = 2018
 	default:
-		return time.Time{}, xerrors.Errorf("%s is not supported", w)
+		return time.Time{}, xerrors.Errorf("%s is not supported", date)
 	}
 
-	wareki, err := strconv.Atoi(w[1:3])
+	wareki, err := strconv.Atoi(date[1:3])
 	if err != nil {
 		return time.Time{}, xerrors.Errorf("failed to parse wareki as int: %w", err)
 	}
 
-	return time.Parse("2006.01.02", fmt.Sprintf("%d%s", wareki+rekiBase, w[3:9]))
+	return time.Parse("2006.01.02", fmt.Sprintf("%d%s", wareki+rekiBase, date[3:9]))
 }
 
 // SMBCStatement builds a handler for statements for SMBC (三井住友銀行 入出金明細).
 func SMBCStatement(name, pattern string, t Table, n bqloader.Notifier) *bqloader.Handler {
 	projector := func(ctx context.Context, r []string) ([]string, error) {
 		// 0: date (年月日)
-		t, err := parseSMBCWareki(r[0])
+		t, err := parseSMBCDate(r[0])
 		if err != nil {
 			return nil, xerrors.Errorf("failed to parse date: %w", err)
 		}
