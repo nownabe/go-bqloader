@@ -12,7 +12,7 @@ import (
 	"golang.org/x/xerrors"
 )
 
-func parseSMBCWareki(w string) (time.Time, error) {
+func parseSMBCDate(w string) (time.Time, error) {
 	if len(w) != 9 {
 		return time.Time{}, xerrors.Errorf("invalid date format: %s", w)
 	}
@@ -39,7 +39,7 @@ func parseSMBCWareki(w string) (time.Time, error) {
 func SMBCStatement(name, pattern string, t Table, n bqloader.Notifier) *bqloader.Handler {
 	projector := func(ctx context.Context, r []string) ([]string, error) {
 		// 0: date (年月日)
-		t, err := parseSMBCWareki(r[0])
+		t, err := parseSMBCDate(r[0])
 		if err != nil {
 			return nil, xerrors.Errorf("failed to parse date: %w", err)
 		}

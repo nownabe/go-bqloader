@@ -1,3 +1,3 @@
 package handlers
 
-var ParseSMBCWareki = parseSMBCWareki
+var ParseSMBCDate = parseSMBCDate

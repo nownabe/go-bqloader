@@ -9,7 +9,7 @@ import (
 	"go.nownabe.dev/bqloader/contrib/handlers"
 )
 
-func Test_parseSMBCWareki(t *testing.T) {
+func Test_parseSMBCDate(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
@@ -29,7 +29,7 @@ func Test_parseSMBCWareki(t *testing.T) {
 		t.Run(c.input, func(t *testing.T) {
 			t.Parallel()
 
-			actual, err := handlers.ParseSMBCWareki(c.input)
+			actual, err := handlers.ParseSMBCDate(c.input)
 
 			if c.e {
 				if err == nil {
