@@ -22,6 +22,7 @@ func Test_parseSMBCDate(t *testing.T) {
 		{input: "H31.04.30", expect: time.Date(2019, 4, 30, 0, 0, 0, 0, time.UTC), e: false},
 		{input: "R01.05.01", expect: time.Date(2019, 5, 1, 0, 0, 0, 0, time.UTC), e: false},
 		{input: "R1.5.2", expect: time.Time{}, e: true},
+		{input: "2021/12/17", expect: time.Date(2021, 12, 17, 0, 0, 0, 0, time.UTC), e: false},
 	}
 
 	for _, c := range cases {

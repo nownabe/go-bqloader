@@ -13,6 +13,11 @@ import (
 )
 
 func parseSMBCDate(w string) (time.Time, error) {
+	t, err := time.Parse("2006/01/02", w)
+	if err == nil {
+		return t, nil
+	}
+
 	if len(w) != 9 {
 		return time.Time{}, xerrors.Errorf("invalid date format: %s", w)
 	}
