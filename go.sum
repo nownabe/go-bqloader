@@ -65,6 +65,8 @@ cloud.google.com/go/datastore v1.0.0/go.mod h1:LXYbyblFSglQ5pkeyhO+Qmw7ukd3C+pD7
 cloud.google.com/go/datastore v1.1.0/go.mod h1:umbIZjpQpHh4hmRpGhH4tLFup+FVzqBi1b3c64qFpCk=
 cloud.google.com/go/functions v0.1.0 h1:JJRM3eRejFE/I9m3uflHTNpOABWSPWu6cN+6rXJo1Mo=
 cloud.google.com/go/functions v0.1.0/go.mod h1:ulk0MlpR/agXU5yvDiWLfBCCuNCQZSQiPz415eJCLPA=
+cloud.google.com/go/functions v0.2.0 h1:EHvTgXxAZO7Z8fTDEqE0fXJHzxdwCigHSXTne+aL8TY=
+cloud.google.com/go/functions v0.2.0/go.mod h1:/i8jMEqHB/ZUMJN7Wbo9ww5Yvr5FMclwZdX8IX4bf70=
 cloud.google.com/go/iam v0.1.0 h1:W2vbGCrE3Z7J/x3WXLxxGl9LMSB2uhsAA7Ss/6u/qRY=
 cloud.google.com/go/iam v0.1.0/go.mod h1:vcUNEa0pEm0qRVpmWepWaFMIAI8/hjB9mO8rNCJtF6c=
 cloud.google.com/go/iam v0.1.1 h1:4CapQyNFjiksks1/x7jsvsygFPhihslYk5GptIrlX68=
