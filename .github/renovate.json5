@@ -1,0 +1,42 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:base",
+    ":prHourlyLimitNone",
+  ],
+  dependencyDashboard: true,
+  labels: ["renovate"],
+  packageRules: [
+    {
+      matchUpdateTypes: ["pin"],
+      automerge: true,
+    },
+    {
+      matchFiles: [
+        "go.mod",
+        "examples/pre_configured_handlers/go.mod",
+        "examples/preprocessor/go.mod",
+        "examples/quickstart/go.mod",
+      ],
+      matchUpdateTypes: ["minor"],
+      automerge: true,
+      stabilityDays: 7,
+    },
+    {
+      matchFiles: [
+        "go.mod",
+        "examples/pre_configured_handlers/go.mod",
+        "examples/preprocessor/go.mod",
+        "examples/quickstart/go.mod",
+      ],
+      matchUpdateTypes: ["patch"],
+      automerge: true,
+      stabilityDays: 3,
+    },
+    {
+      matchFiles: ["go.mod"],
+      matchUpdateTypes: ["major"],
+      assignees: ["nownabe"],
+    }
+  ],
+}
