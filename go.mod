@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	cloud.google.com/go v0.100.2
-	cloud.google.com/go/bigquery v1.27.0
+	cloud.google.com/go/bigquery v1.28.0
 	cloud.google.com/go/functions v0.2.0
 	cloud.google.com/go/storage v1.20.0
 	github.com/rs/zerolog v1.26.1
