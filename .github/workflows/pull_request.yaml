@@ -7,7 +7,7 @@ jobs:
     name: test job
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-go@v2
         with:
           go-version: 1.13
@@ -30,7 +30,7 @@ jobs:
     name: golangci-lint job
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: reviewdog/action-golangci-lint@v2
         with:
           golangci_lint_flags: "--enable-all --exclude-use-default=false"
@@ -42,7 +42,7 @@ jobs:
     name: languagetool job
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: reviewdog/action-languagetool@v1
         with:
           reporter: github-pr-review
@@ -52,7 +52,7 @@ jobs:
     name: shellcheck job
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: reviewdog/action-shellcheck@v1
         with:
           reporter: github-pr-review
@@ -63,7 +63,7 @@ jobs:
     name: alex job
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: reviewdog/action-alex@v1
         with:
           reporter: github-pr-review
