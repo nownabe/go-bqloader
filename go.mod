@@ -10,5 +10,5 @@ require (
 	github.com/rs/zerolog v1.26.1
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/text v0.3.7
-	golang.org/x/xerrors v0.0.0-20220411194840-2f41105eb62f
+	golang.org/x/xerrors v0.0.0-20220517211312-f3a8303e98df
 )
