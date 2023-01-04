@@ -1,8 +1,13 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
+	"io"
+	"io/ioutil"
 	"regexp"
+	"strings"
 	"time"
 
 	"go.nownabe.dev/bqloader"
@@ -14,6 +19,29 @@ import (
 // To add column of payment month, keep the file name when you downloaded it.
 func SMBCCardStatement(name, pattern string, table Table, notifier bqloader.Notifier) *bqloader.Handler {
 	var monthKey contextKey = "month"
+
+	parser := func(_ context.Context, r io.Reader) ([][]string, error) {
+		body, err := ioutil.ReadAll(r)
+		if err != nil {
+			return nil, xerrors.Errorf("failed to read: %w", err)
+		}
+
+		csvBody := ""
+
+		lines := strings.Split(string(body), "\r\n")
+		for _, line := range lines {
+			if len(line) > 4 && line[4] == '/' {
+				csvBody += line + "\r\n"
+			}
+		}
+
+		records, err := csv.NewReader(bytes.NewReader([]byte(csvBody))).ReadAll()
+		if err != nil {
+			return nil, xerrors.Errorf("failed to read as CSV: %w", err)
+		}
+
+		return records, nil
+	}
 
 	re := regexp.MustCompile(`/(\d+)\.csv`)
 	preprocessor := func(ctx context.Context, e bqloader.Event) (context.Context, error) {
@@ -58,8 +86,9 @@ func SMBCCardStatement(name, pattern string, table Table, notifier bqloader.Noti
 		Pattern:         regexp.MustCompile(pattern),
 		SkipLeadingRows: 0,
 
-		Encoding:     japanese.ShiftJIS,
-		Parser:       PartialCSVParser(1, 0, "\r\n"),
+		Encoding: japanese.ShiftJIS,
+		// Parser:       PartialCSVParser(1, 0, "\r\n"),
+		Parser:       parser,
 		Projector:    projector,
 		Preprocessor: preprocessor,
 		Notifier:     notifier,

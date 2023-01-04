@@ -11,7 +11,7 @@ import (
 func Test_RakutenBankStatement(t *testing.T) {
 	t.Parallel()
 
-	const csv = "csv/rakuten_bank_statement.csv"
+	const csv = "testdata/rakuten_bank_statement.csv"
 
 	expected := [][]string{
 		{"2020-02-25", "-754", "184655", "ラクテンショウケンカブシキガイシャ （投資信託買付代金）"},

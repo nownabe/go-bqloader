@@ -11,7 +11,7 @@ import (
 func Test_RakutenCardStatement(t *testing.T) {
 	t.Parallel()
 
-	const csv = "csv/rakuten_card_statement.csv"
+	const csv = "testdata/rakuten_card_statement.csv"
 
 	expected := [][]string{
 		{"2020-12-03", "foo", "本人", "1回払い", "2750", "0", "2750", "2750", "0", "*", "2020-12-01"},

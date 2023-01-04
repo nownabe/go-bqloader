@@ -11,7 +11,7 @@ import (
 func Test_SBISumishinNetBankStatement(t *testing.T) {
 	t.Parallel()
 
-	const csv = "csv/sbi_sumishin_net_bank_statement.csv"
+	const csv = "testdata/sbi_sumishin_net_bank_statement.csv"
 
 	expected := [][]string{
 		{"2020-12-25", "普通　円　フィンビーエゴマ", "220", "", "29447", "-"},

@@ -53,7 +53,7 @@ func Test_parseSMBCDate(t *testing.T) {
 func Test_SMBCStatement(t *testing.T) {
 	t.Parallel()
 
-	const csv = "csv/smbc_statement.csv"
+	const csv = "testdata/smbc_statement.csv"
 
 	expected := [][]string{
 		{"2019-12-04", "10389", "", "カ)ビユ-カ-ド", "124001"},
@@ -76,7 +76,7 @@ func Test_SMBCStatement(t *testing.T) {
 func Test_SMBCStatement2(t *testing.T) {
 	t.Parallel()
 
-	const csv = "csv/smbc_statement2.csv"
+	const csv = "testdata/smbc_statement2.csv"
 
 	expected := [][]string{
 		{"2020-10-12", "-12200", "", "ミツイスミトモカ-ド (カ", "172991", "", ""},

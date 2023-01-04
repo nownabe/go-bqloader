@@ -11,7 +11,7 @@ import (
 func Test_SBISecuritiesGlobalBankingStatement(t *testing.T) {
 	t.Parallel()
 
-	const csv = "csv/sbi_securities_global_banking_statement.csv"
+	const csv = "testdata/sbi_securities_global_banking_statement.csv"
 
 	expected := [][]string{
 		{"2020-10-01", "入金", "日本円", "入出金振替", "", "187423"},
@@ -33,7 +33,7 @@ func Test_SBISecuritiesGlobalBankingStatement(t *testing.T) {
 func Test_SBISecuritiesGlobalExecutionHistory(t *testing.T) {
 	t.Parallel()
 
-	const csv = "csv/sbi_securities_global_execution_history.csv"
+	const csv = "testdata/sbi_securities_global_execution_history.csv"
 
 	expected := [][]string{
 		{"2020-09-18", "バンガード S&P 500 ETF", "VOO", "NYSEArca", "米国株式", "成行", "買付", "特定預り", "8", "306.4800", "2020-09-24", "257345"},
