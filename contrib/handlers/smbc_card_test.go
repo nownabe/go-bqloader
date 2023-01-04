@@ -11,7 +11,7 @@ import (
 func Test_SMBCCardStatement(t *testing.T) {
 	t.Parallel()
 
-	const csv = "csv/smbc_card_statement.csv"
+	const csv = "testdata/smbc_card_statement.csv"
 
 	expected := [][]string{
 		{"2020-11-29", "Ａｍａｚｏｎ　Ｄｏｗｎｌｏａｄｓ", "288", "", "", "", "", "2020-12-01"},

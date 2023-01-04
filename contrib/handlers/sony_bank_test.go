@@ -11,7 +11,7 @@ import (
 func Test_SonyBankStatement(t *testing.T) {
 	t.Parallel()
 
-	const csv = "csv/sony_bank_statement.csv"
+	const csv = "testdata/sony_bank_statement.csv"
 
 	expected := [][]string{
 		{"2020-12-12", "積み立て定期預金へ振替", "", "", "10000", "661450"},
