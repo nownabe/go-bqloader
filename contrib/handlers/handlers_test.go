@@ -34,7 +34,7 @@ func assertEqual(t *testing.T, expected [][]string, actual [][]string) {
 	t.Helper()
 
 	if len(expected) != len(actual) {
-		t.Errorf("expected %d length, but %d", len(expected), len(actual))
+		t.Fatalf("expected %d length, but %d", len(expected), len(actual))
 	}
 
 	for i := range expected {
