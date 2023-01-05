@@ -14,8 +14,10 @@ func Test_SBISecuritiesGlobalBankingStatement(t *testing.T) {
 	const csv = "testdata/sbi_securities_global_banking_statement.csv"
 
 	expected := [][]string{
-		{"2020-10-01", "入金", "日本円", "入出金振替", "", "187423"},
-		{"2020-10-05", "分配金", "米国ドル", "VOO 銘柄名:VG S&P 500 ETF", "", "7.54"},
+		{"2022-12-30", "分配金", "米ドル", "BND 銘柄名:VG TBM", "", "0.64"},
+		{"2022-12-28", "出金", "米ドル", "米国株式TECL外国源泉税の過日徴収", "3.58", ""},
+		{"2022-11-18", "入金", "米ドル", "米国BND211229配当税還付 税減額日:220311", "", "0.07"},
+		{"2022-10-03", "入金", "米ドル", "住信SBIネット銀行から外貨入金", "", "100.00"},
 	}
 
 	h, tl := buildTestHandler(t, csv, handlers.SBISecuritiesGlobalBankingStatement)
