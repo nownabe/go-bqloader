@@ -13,20 +13,31 @@ import (
 // SBISecuritiesGlobalBankingStatement build a handler for banking statement of SBI Securities Global (SBI証券 外国株式 入出金明細).
 func SBISecuritiesGlobalBankingStatement(name, pattern string, table Table, notifier bqloader.Notifier) *bqloader.Handler {
 	projector := func(_ context.Context, r []string) ([]string, error) {
-		// 0: date (入出金日)
+		projected := make([]string, 6)
+
+		// 0 -> 0: date (入出金日)
 		t, err := time.Parse("2006/01/02", r[0])
 		if err != nil {
 			return nil, xerrors.Errorf("failed to parse data: %w", err)
 		}
-		r[0] = t.Format("2006-01-02")
+		projected[0] = t.Format("2006-01-02")
 
-		// 4: withdrawal (出金額)
-		r[4] = CleanNumber(r[4])
+		// 1 -> 1: 取引
+		projected[1] = r[1]
 
-		// 5: deposit (入金額)
-		r[5] = CleanNumber(r[5])
+		// 5 -> 2: 通貨
+		projected[2] = r[5]
 
-		return r, nil
+		// 2 -> 3: 摘要
+		projected[3] = r[2]
+
+		// 3 -> 4: 出金額
+		projected[4] = CleanNumber(r[3])
+
+		// 4 -> 5: 入金額
+		projected[5] = CleanNumber(r[4])
+
+		return projected, nil
 	}
 
 	return &bqloader.Handler{
@@ -35,7 +46,7 @@ func SBISecuritiesGlobalBankingStatement(name, pattern string, table Table, noti
 		SkipLeadingRows: 1,
 
 		Encoding:  japanese.ShiftJIS,
-		Parser:    PartialCSVParser(6, 0, "\r\n"),
+		Parser:    PartialCSVParser(6, 0, "\n"),
 		Projector: projector,
 		Notifier:  notifier,
 
@@ -80,7 +91,7 @@ func SBISecuritiesGlobalExecutionHistory(name, pattern string, table Table, noti
 		SkipLeadingRows: 1,
 
 		Encoding:  japanese.ShiftJIS,
-		Parser:    PartialCSVParser(6, 0, "\r\n"),
+		Parser:    PartialCSVParser(6, 0, "\n"),
 		Projector: projector,
 		Notifier:  notifier,
 
