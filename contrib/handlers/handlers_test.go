@@ -52,12 +52,12 @@ func assertEqual(t *testing.T, expected [][]string, actual [][]string) {
 
 func buildTestHandler(
 	t *testing.T,
-	csv string,
+	path string,
 	f func(string, string, handlers.Table, bqloader.Notifier) *bqloader.Handler,
 ) (*bqloader.Handler, *testLoader) {
 	t.Helper()
 
-	body, err := ioutil.ReadFile(csv)
+	body, err := ioutil.ReadFile(path)
 	if err != nil {
 		t.Fatalf("failed to read CSV: %v", err)
 	}
