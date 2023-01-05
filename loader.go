@@ -35,7 +35,10 @@ func (l *defaultLoader) Load(ctx context.Context, records [][]string) error {
 	if err := csv.NewWriter(buf).WriteAll(records); err != nil {
 		return xerrors.Errorf("failed to write csv into buffer: %w", err)
 	}
+
 	rs := bigquery.NewReaderSource(buf)
+	rs.AllowQuotedNewlines = true
+
 	loader := l.table.LoaderFrom(rs)
 	loader.LoadConfig.CreateDisposition = bigquery.CreateNever
 
