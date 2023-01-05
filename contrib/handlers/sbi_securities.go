@@ -91,7 +91,7 @@ func SBISecuritiesGlobalExecutionHistory(name, pattern string, table Table, noti
 		SkipLeadingRows: 1,
 
 		Encoding:  japanese.ShiftJIS,
-		Parser:    PartialCSVParser(6, 0, "\r\n"),
+		Parser:    PartialCSVParser(6, 0, "\n"),
 		Projector: projector,
 		Notifier:  notifier,
 

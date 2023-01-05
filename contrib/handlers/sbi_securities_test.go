@@ -38,8 +38,8 @@ func Test_SBISecuritiesGlobalExecutionHistory(t *testing.T) {
 	const csv = "testdata/sbi_securities_global_execution_history.csv"
 
 	expected := [][]string{
-		{"2020-09-18", "バンガード S&P 500 ETF", "VOO", "NYSEArca", "米国株式", "成行", "買付", "特定預り", "8", "306.4800", "2020-09-24", "257345"},
-		{"2020-09-29", "iシェアーズ コア　米国高配当株 ETF", "HDV", "NYSEArca", "米国株式", "成行", "買付", "特定預り", "22", "80.2400", "2020-10-01", "187423"},
+		{"2022-12-02", "グローバルＸ SP 500 カバードコール50 ETF", "XYLG", "NYSE Arca", "米国株式", "成行", "現買", "特定", "30", "26.4100", "2022-12-06", "796.22"},
+		{"2022-01-11", "iシェアーズ コア　米国高配当株 ETF", "HDV", "NYSE Arca", "米国株式", "成行", "現売", "特定", "29", "102.4450", "2022-01-13", "2956.21"},
 	}
 
 	h, tl := buildTestHandler(t, csv, handlers.SBISecuritiesGlobalExecutionHistory)
