@@ -10,7 +10,7 @@ require (
 	github.com/rs/zerolog v1.27.0
 	gitlab.com/osaki-lab/iowrapper v0.0.0-20201210013351-bab12bc19f54
 	golang.org/x/sync v0.1.0
-	golang.org/x/text v0.8.0
+	golang.org/x/text v0.9.0
 	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f
 )
 
