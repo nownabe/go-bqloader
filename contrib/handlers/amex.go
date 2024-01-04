@@ -111,7 +111,7 @@ func AMEXStatement(name, pattern string, table Table, notifier bqloader.Notifier
 		// 4: 金額
 		r[4] = CleanNumber(r[4])
 
-		// 7: payment_month (支払い月)
+		// 8: payment_month (支払い月)
 		r = append(r, paymentMonth)
 
 		return r, nil
