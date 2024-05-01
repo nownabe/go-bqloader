@@ -11,7 +11,7 @@ require (
 	gitlab.com/osaki-lab/iowrapper v0.0.0-20201210013351-bab12bc19f54
 	golang.org/x/sync v0.7.0
 	golang.org/x/text v0.14.0
-	golang.org/x/xerrors v0.0.0-20220609144429-65e65417b02f
+	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028
 )
 
 require (
