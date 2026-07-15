@@ -1,6 +1,6 @@
 module go.nownabe.dev/bqloader
 
-go 1.19
+go 1.25.0
 
 require (
 	cloud.google.com/go/bigquery v1.32.0
@@ -9,8 +9,8 @@ require (
 	github.com/extrame/xls v0.0.1
 	github.com/rs/zerolog v1.27.0
 	gitlab.com/osaki-lab/iowrapper v0.0.0-20201210013351-bab12bc19f54
-	golang.org/x/sync v0.11.0
-	golang.org/x/text v0.22.0
+	golang.org/x/sync v0.22.0
+	golang.org/x/text v0.40.0
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9
 )
 
